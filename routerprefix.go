@@ -46,6 +46,10 @@ func (p *RouterPrefix) Options(pattern string, handlers ...HandlerFunc) {
 	p.Handle(http.MethodOptions, pattern, handlers...)
 }
 
+func (p *RouterPrefix) Patch(pattern string, handlers ...HandlerFunc) {
+	p.Handle(http.MethodPatch, pattern, handlers...)
+}
+
 func (p *RouterPrefix) combineHandlers(handlers []HandlerFunc) []HandlerFunc {
 	finalSize := len(p.Handlers) + len(handlers)
 	mergedHandlers := make([]HandlerFunc, finalSize)
@@ -72,7 +76,7 @@ func (p *RouterPrefix) Handle(method, pattern string, handlers ...HandlerFunc) {
 	}
 
 	handlers = p.combineHandlers(handlers)
-	muxHandler := compose(handlers)
+	muxHandler := composeMiddleware(handlers)
 	p.router.Handle(method, pattern, muxHandler)
 }
 
@@ -82,18 +86,18 @@ func copyHandlers(dst, src []HandlerFunc) {
 	}
 }
 
-func compose(handlers []HandlerFunc) router.Handle {
-    return func(rw http.ResponseWriter, req *http.Request, ps router.Params) {
-    	context := &Context{
-    		Request: req,
-    		handlers: handlers,
-    		current: -1,
-    		ResponseWriter: ResponseWriter{
-    			ResponseWriter: rw,
-    		},
-    		Params: ps,
-    	}
+func composeMiddleware(handlers []HandlerFunc) router.Handle {
+	return func(rw http.ResponseWriter, req *http.Request, ps router.Params) {
+		context := &Context{
+			Request:  req,
+			handlers: handlers,
+			current:  -1,
+			ResponseWriter: ResponseWriter{
+				ResponseWriter: rw,
+			},
+			Params: ps,
+		}
 
-    	context.Next()
-    }
+		context.Next()
+	}
 }
