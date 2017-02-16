@@ -67,6 +67,10 @@ func (p *RouterPrefix) Handle(method, pattern string, handlers ...HandlerFunc) {
 		panic("there must be at least one handler")
 	}
 
+	if p.basePath != "" {
+		pattern = p.basePath + pattern
+	}
+
 	handlers = p.combineHandlers(handlers)
 	muxHandler := compose(handlers)
 	p.router.Handle(method, pattern, muxHandler)
