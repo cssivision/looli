@@ -2,13 +2,15 @@ package looli
 
 import (
 	"net/http"
+	"github.com/cssivision/router"
 )
 
 type Context struct {
+	ResponseWriter 
 	current  int
 	Request  *http.Request
-	Response ResponseWriter
     handlers []HandlerFunc
+    Params   router.Params
 }
 
 func (c *Context) Next() {

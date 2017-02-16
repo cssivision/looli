@@ -14,10 +14,10 @@ type Engine struct {
 
 func New() *Engine {
 	engine := &Engine{
-		router: router.New(),
 		RouterPrefix: RouterPrefix{
 			basePath: "",
 		},
+		router: router.New(),
 	}
 
 	engine.RouterPrefix.router = engine.router
