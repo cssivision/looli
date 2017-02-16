@@ -7,5 +7,8 @@ import (
 
 func compose(handlers ...HandlerFunc) router.Handle {
     return func(rw http.ResponseWriter, req *http.Request, ps router.Params) {
+    	for handler := range handlers {
+    		
+    	}
     }
 }
