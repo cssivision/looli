@@ -30,6 +30,22 @@ func (p *RouterPrefix) Put(pattern string, handlers ...HandlerFunc) {
 	p.Handle(http.MethodPut, pattern, handlers...)
 }
 
+func (p *RouterPrefix) Delete(pattern string, handlers ...HandlerFunc) {
+	p.Handle(http.MethodDelete, pattern, handlers...)
+}
+
+func (p *RouterPrefix) Head(pattern string, handlers ...HandlerFunc) {
+	p.Handle(http.MethodHead, pattern, handlers...)
+}
+
+func (p *RouterPrefix) Trace(pattern string, handlers ...HandlerFunc) {
+	p.Handle(http.MethodTrace, pattern, handlers...)
+}
+
+func (p *RouterPrefix) Options(pattern string, handlers ...HandlerFunc) {
+	p.Handle(http.MethodOptions, pattern, handlers...)
+}
+
 func (p *RouterPrefix) combineHandlers(handlers []HandlerFunc) []HandlerFunc {
 	finalSize := len(p.Handlers) + len(handlers)
 	mergedHandlers := make([]HandlerFunc, finalSize)
