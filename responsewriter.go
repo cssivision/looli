@@ -11,3 +11,7 @@ type ResponseWriter struct {
 func (rw *ResponseWriter) String(statusCode int, response string) {
 	
 }
+
+func (rw *ResponseWriter) JSON(statusCode int, response interface{}) {
+
+}
