@@ -20,6 +20,10 @@ func (c *Context) Next() {
 	}
 }
 
+func (c *Context) Param(name string) string {
+	return c.Params[name]
+}
+
 func (c *Context) Query(key string) string {
 	req := c.Request
 	query := req.URL.Query()
@@ -43,6 +47,17 @@ func (c *Context) PostForm(key string) string {
 	req := c.Request
 	req.ParseForm()
 	req.ParseMultipartForm(32 << 20)
+
+	if values := req.PostForm[key]; len(values) > 0 {
+		return values[0]
+	}
+
+	if req.MultipartForm != nil && req.MultipartForm.File != nil {
+		if values := req.MultipartForm.Value[key]; len(values) > 0 {
+			return values[0]
+		}
+	}
+
 	return ""
 }
 
@@ -67,8 +82,8 @@ func (c *Context) Header(key, value string) {
 	}
 }
 
-func (c *Context) Redirect(code int, location string) {
-
+func (c *Context) Redirect(location string) {
+	http.Redirect(c.ResponseWriter, c.Request, location, http.StatusFound)
 }
 
 func (c *Context) ServeFile(filepath string) {

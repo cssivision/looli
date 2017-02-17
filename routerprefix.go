@@ -3,6 +3,7 @@ package looli
 import (
 	"github.com/cssivision/router"
 	"net/http"
+	"strings"
 )
 
 // RouterPrefix is used internally to configure router, a RouterPrefix is associated with a basePath
@@ -61,6 +62,24 @@ func (p *RouterPrefix) Patch(pattern string, handlers ...HandlerFunc) {
 	p.Handle(http.MethodPatch, pattern, handlers...)
 }
 
+// StaticFile register router pattern and response file in path
+func (p *RouterPrefix) StaticFile(pattern, path string) {
+	handler := func(c *Context) {
+		c.ServeFile(path)
+	}
+
+	p.Handle(http.MethodGet, pattern, handler)
+}
+
+func (p *RouterPrefix) Static(pattern, path string) {
+	handler := func(c *Context) {
+		c.ServeFile(c.Request.URL.String())
+	}
+
+	pattern = strings.TrimSuffix(pattern, "/") + "/*filepath"
+	p.Handle(http.MethodGet, pattern, handler)
+}
+
 func (p *RouterPrefix) combineHandlers(handlers []HandlerFunc) []HandlerFunc {
 	finalSize := len(p.Handlers) + len(handlers)
 	mergedHandlers := make([]HandlerFunc, finalSize)
@@ -69,8 +88,8 @@ func (p *RouterPrefix) combineHandlers(handlers []HandlerFunc) []HandlerFunc {
 	return mergedHandlers
 }
 
-// Prefix creates a new router prefix. You should add all the routes that have common 
-// middlwares or the same path prefix. For example, all the routes that use a common 
+// Prefix creates a new router prefix. You should add all the routes that have common
+// middlwares or the same path prefix. For example, all the routes that use a common
 // middlware could be grouped.
 func (p *RouterPrefix) Prefix(basePath string) *RouterPrefix {
 	return &RouterPrefix{

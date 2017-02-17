@@ -27,3 +27,7 @@ func New() *Engine {
 func (engine *Engine) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	engine.router.ServeHTTP(rw, req)
 }
+
+func (engine *Engine) Run(address string) {
+	http.ListenAndServe(address, engine.router)
+}
