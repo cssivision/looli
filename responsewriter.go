@@ -8,10 +8,10 @@ type ResponseWriter struct {
     http.ResponseWriter
 }
 
-func (rw *ResponseWriter) String(statusCode int, response string) {
-	
+func (rw *ResponseWriter) WriteString(statusCode int, response string) {
+
 }
 
-func (rw *ResponseWriter) JSON(statusCode int, response interface{}) {
-
+func (rw *ResponseWriter) CloseNotify() <-chan bool {
+    return rw.ResponseWriter.(http.CloseNotifier).CloseNotify()
 }

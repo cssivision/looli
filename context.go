@@ -26,6 +26,8 @@ type Context struct {
 	URL      string
 }
 
+type JSON map[string]interface{}
+
 const abortIndex int8 = math.MaxInt8 / 2
 
 // Next should be used only inside middleware. It executes the pending handlers in the chain
@@ -162,10 +164,12 @@ func (c *Context) SetCookie(cookie *http.Cookie) {
 	http.SetCookie(c.ResponseWriter, cookie)
 }
 
+// Pipe stream Request.Body to dst
 func (c *Context) Pipe(dst io.Writer) {
 	io.Copy(dst, c.Request.Body)
 }
 
+// ContentType return content-type from header
 func (c *Context) ContentType() string {
 	if values, _ := c.Request.Header["Content-Type"]; len(values) > 0 {
 		return values[0]
@@ -173,18 +177,14 @@ func (c *Context) ContentType() string {
 	return ""
 }
 
-func (c *Context) String() {
-
+func (c *Context) String(format string, values ...interface{}) {
+	renderString(c.ResponseWriter, format, values...)
 }
 
-func (c *Context) JSON() {
-
+func (c *Context) JSON(obj interface{}) {
+	renderJSON(c.ResponseWriter, obj)
 }
 
 func (c *Context) HTML() {
-
-}
-
-func (c *Context) Render() {
 
 }

@@ -137,14 +137,14 @@ func copyHandlers(dst, src []HandlerFunc) {
 func composeMiddleware(handlers []HandlerFunc) router.Handle {
 	return func(rw http.ResponseWriter, req *http.Request, ps router.Params) {
 		context := &Context{
-			Request:  req,
-			handlers: handlers,
-			current:  -1,
 			ResponseWriter: ResponseWriter{
 				ResponseWriter: rw,
 			},
-			Params: ps,
-			URL: req.URL.String(),
+			Request:  req,
+			handlers: handlers,
+			current:  -1,
+			Params:   ps,
+			URL:      req.URL.String(),
 		}
 
 		context.Next()
