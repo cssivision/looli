@@ -29,7 +29,7 @@ func (p *RouterPrefix) Get(pattern string, handlers ...HandlerFunc) {
 
 // Post is a shortcut for router.Handle("Post", path, handle)
 func (p *RouterPrefix) Post(pattern string, handlers ...HandlerFunc) {
-	p.Handle(http.MethodGet, pattern, handlers...)
+	p.Handle(http.MethodPost, pattern, handlers...)
 }
 
 // Put is a shortcut for router.Handle("Put", path, handle)
@@ -47,11 +47,6 @@ func (p *RouterPrefix) Head(pattern string, handlers ...HandlerFunc) {
 	p.Handle(http.MethodHead, pattern, handlers...)
 }
 
-// Trace is a shortcut for router.Handle("TRACE", path, handle)
-func (p *RouterPrefix) Trace(pattern string, handlers ...HandlerFunc) {
-	p.Handle(http.MethodTrace, pattern, handlers...)
-}
-
 // Options is a shortcut for router.Handle("OPTIONS", path, handle)
 func (p *RouterPrefix) Options(pattern string, handlers ...HandlerFunc) {
 	p.Handle(http.MethodOptions, pattern, handlers...)
@@ -62,41 +57,18 @@ func (p *RouterPrefix) Patch(pattern string, handlers ...HandlerFunc) {
 	p.Handle(http.MethodPatch, pattern, handlers...)
 }
 
-// StaticFile register router pattern and response file in path
-func (p *RouterPrefix) StaticFile(pattern, path string) {
-	handler := func(c *Context) {
-		c.ServeFile(path)
-	}
-
-	p.Handle(http.MethodGet, pattern, handler)
-}
-
-func (p *RouterPrefix) Static(pattern, path string) {
-	handler := func(c *Context) {
-		c.ServeFile(c.Request.URL.String())
-	}
-
-	pattern = strings.TrimSuffix(pattern, "/") + "/*filepath"
-	p.Handle(http.MethodGet, pattern, handler)
-}
-
-func (p *RouterPrefix) combineHandlers(handlers []HandlerFunc) []HandlerFunc {
-	finalSize := len(p.Handlers) + len(handlers)
-	mergedHandlers := make([]HandlerFunc, finalSize)
-	copyHandlers(mergedHandlers, p.Handlers)
-	copyHandlers(mergedHandlers[len(p.Handlers):], handlers)
-	return mergedHandlers
-}
-
-// Prefix creates a new router prefix. You should add all the routes that have common
-// middlwares or the same path prefix. For example, all the routes that use a common
-// middlware could be grouped.
-func (p *RouterPrefix) Prefix(basePath string) *RouterPrefix {
-	return &RouterPrefix{
-		basePath: basePath,
-		router:   p.router,
-		Handlers: p.Handlers,
-	}
+// Any registers a route that matches all the HTTP methods.
+// GET, POST, PUT, PATCH, HEAD, OPTIONS, DELETE, CONNECT, TRACE
+func (p *RouterPrefix) Any(pattern string, handlers ...HandlerFunc) {
+	p.Handle(http.MethodGet, pattern, handlers...)
+	p.Handle(http.MethodPost, pattern, handlers...)
+	p.Handle(http.MethodPut, pattern, handlers...)
+	p.Handle(http.MethodDelete, pattern, handlers...)
+	p.Handle(http.MethodHead, pattern, handlers...)
+	p.Handle(http.MethodOptions, pattern, handlers...)
+	p.Handle(http.MethodPatch, pattern, handlers...)
+	p.Handle(http.MethodTrace, pattern, handlers...)
+	p.Handle(http.MethodConnect, pattern, handlers...)
 }
 
 // Handle registers a new request handle and middleware with the given path and method.
@@ -112,6 +84,47 @@ func (p *RouterPrefix) Handle(method, pattern string, handlers ...HandlerFunc) {
 	handlers = p.combineHandlers(handlers)
 	muxHandler := composeMiddleware(handlers)
 	p.router.Handle(method, pattern, muxHandler)
+}
+
+// StaticFile register router pattern and response file in path
+func (p *RouterPrefix) StaticFile(pattern, path string) {
+	handler := func(c *Context) {
+		c.ServeFile(path)
+	}
+
+	p.Handle(http.MethodGet, pattern, handler)
+}
+
+// Static register router pattern and response file in the request url
+func (p *RouterPrefix) Static(pattern, path string) {
+	handler := func(c *Context) {
+		c.ServeFile(c.URL)
+	}
+
+	pattern = strings.TrimSuffix(pattern, "/") + "/*filepath"
+	p.Handle(http.MethodGet, pattern, handler)
+}
+
+func (p *RouterPrefix) combineHandlers(handlers []HandlerFunc) []HandlerFunc {
+	finalSize := len(p.Handlers) + len(handlers)
+	if finalSize >= int(abortIndex) {
+		panic("too many handlers")
+	}
+	mergedHandlers := make([]HandlerFunc, finalSize)
+	copyHandlers(mergedHandlers, p.Handlers)
+	copyHandlers(mergedHandlers[len(p.Handlers):], handlers)
+	return mergedHandlers
+}
+
+// Prefix creates a new router prefix. You should add all the routes that have common
+// middlwares or the same path prefix. For example, all the routes that use a common
+// middlware could be grouped.
+func (p *RouterPrefix) Prefix(basePath string) *RouterPrefix {
+	return &RouterPrefix{
+		basePath: basePath,
+		router:   p.router,
+		Handlers: p.Handlers,
+	}
 }
 
 func copyHandlers(dst, src []HandlerFunc) {
@@ -131,6 +144,7 @@ func composeMiddleware(handlers []HandlerFunc) router.Handle {
 				ResponseWriter: rw,
 			},
 			Params: ps,
+			URL: req.URL.String(),
 		}
 
 		context.Next()
