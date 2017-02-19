@@ -30,9 +30,9 @@ func renderString(rw http.ResponseWriter, format string, values ...interface{}) 
 	return
 }
 
-func renderJSON(rw http.ResponseWriter, obj interface{}) error {
+func renderJSON(rw http.ResponseWriter, data interface{}) error {
 	setContentType(rw, jsonContentType)
-	return json.NewEncoder(rw).Encode(obj)
+	return json.NewEncoder(rw).Encode(data)
 }
 
 func renderHTML(rw http.ResponseWriter, templ *template.Template, name string, data interface{}) error {

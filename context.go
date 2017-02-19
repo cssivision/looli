@@ -60,6 +60,11 @@ func (c *Context) Abort() {
 	c.current = abortIndex
 }
 
+func (c *Context) AbortWithStatus(code int) {
+	c.StatusCode = code
+	c.Abort()
+}
+
 // IsAborted returns true if the current context was aborted.
 func (c *Context) IsAborted() bool {
 	return c.current >= abortIndex
