@@ -5,7 +5,7 @@ import (
     "io"
     "net/http"
     "encoding/json"
-    "html/template"
+    // "html/template"
 )
 
 var (
@@ -21,6 +21,7 @@ func setContentType(rw http.ResponseWriter, value []string) {
 
 func renderString(rw http.ResponseWriter, format string, values ...interface{}) (err error) {
     setContentType(rw, plainContentType)
+
     if len(values) > 0 {
         _, err = fmt.Fprintf(rw, format, values...)
     } else {
@@ -36,9 +37,10 @@ func renderJSON(rw http.ResponseWriter, obj interface{}) error {
 
 func renderHTML(rw http.ResponseWriter, name string, data interface{}) error {
     setContentType(rw, htmlContentType)
-    if name == "" {
-        return template.Execute(rw, data)
-    }
+    // if name == "" {
+    //     return template.Execute(rw, data)
+    // }
 
-    return ExecuteTemplate(rw, name, data)
+    // return ExecuteTemplate(rw, name, data)
+    return nil
 }

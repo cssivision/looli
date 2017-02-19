@@ -10,7 +10,7 @@ import (
 
 // Context construct Request and ResponseWriter, provide useful methods
 type Context struct {
-	ResponseWriter
+	http.ResponseWriter
 	current  int8
 
 	// http.Request
@@ -24,6 +24,9 @@ type Context struct {
 
 	// Short for Request.URL.String()
 	URL      string
+
+	// templete dir
+	template string
 }
 
 type JSON map[string]interface{}
@@ -134,6 +137,11 @@ func (c *Context) ServeFile(filepath string) {
 	http.ServeFile(c.ResponseWriter, c.Request, filepath)
 }
 
+// Get Header by key
+func (c *Context) Header(key string) string {
+	return c.Request.Header.Get(key)
+}
+
 // Set Header by key and value
 func (c *Context) SetHeader(key, value string) {
 	if value == "" {
@@ -141,11 +149,6 @@ func (c *Context) SetHeader(key, value string) {
 	} else {
 		c.ResponseWriter.Header().Set(key, value)
 	}
-}
-
-// Get Header by key
-func (c *Context) Header(key string) string {
-	return c.Request.Header.Get(key)
 }
 
 // Cookie get cookie from request header by name, if err != nil, return "", err
@@ -177,10 +180,12 @@ func (c *Context) ContentType() string {
 	return ""
 }
 
+// String write format string to response
 func (c *Context) String(format string, values ...interface{}) {
 	renderString(c.ResponseWriter, format, values...)
 }
 
+// JSON write obj to response
 func (c *Context) JSON(obj interface{}) {
 	renderJSON(c.ResponseWriter, obj)
 }

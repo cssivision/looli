@@ -105,6 +105,20 @@ func (p *RouterPrefix) Static(pattern, path string) {
 	p.Handle(http.MethodGet, pattern, handler)
 }
 
+// Configurable NotFound which is called when no matching route is
+// found. If it is not set, http.NotFound is used.
+func (p *RouterPrefix) NotFound(handlers ...HandlerFunc) {
+	if len(handlers) == 0 {
+		panic("there must be at least one handler")
+	}
+
+	handler := composeMiddleware(handlers)
+	p.router.NotFound = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		handler(rw, req, router.Params{})
+	})
+}
+
+// combine middleware and handlers for specific route
 func (p *RouterPrefix) combineHandlers(handlers []HandlerFunc) []HandlerFunc {
 	finalSize := len(p.Handlers) + len(handlers)
 	if finalSize >= int(abortIndex) {
@@ -137,14 +151,12 @@ func copyHandlers(dst, src []HandlerFunc) {
 func composeMiddleware(handlers []HandlerFunc) router.Handle {
 	return func(rw http.ResponseWriter, req *http.Request, ps router.Params) {
 		context := &Context{
-			ResponseWriter: ResponseWriter{
-				ResponseWriter: rw,
-			},
-			Request:  req,
-			handlers: handlers,
-			current:  -1,
-			Params:   ps,
-			URL:      req.URL.String(),
+			ResponseWriter: rw,
+			Request:        req,
+			handlers:       handlers,
+			current:        -1,
+			Params:         ps,
+			URL:            req.URL.String(),
 		}
 
 		context.Next()

@@ -10,6 +10,8 @@ type HandlerFunc func(*Context)
 type Engine struct {
 	RouterPrefix
 	router *router.Router
+	noRoute []HandlerFunc
+	noMethod []HandlerFunc
 }
 
 func New() *Engine {
@@ -24,10 +26,17 @@ func New() *Engine {
 	return engine
 }
 
+func Default() *Engine {
+	engine := New()
+	engine.RouterPrefix.Handlers = []HandlerFunc{Logger, Recover}
+	return engine
+}
+
 func (engine *Engine) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	engine.router.ServeHTTP(rw, req)
 }
 
-func (engine *Engine) Run(address string) {
-	http.ListenAndServe(address, engine.router)
+func (engine *Engine) Run(address string) (err error) {
+	err = http.ListenAndServe(address, engine.router)
+	return
 }
