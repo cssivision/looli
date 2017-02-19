@@ -1,8 +1,9 @@
 package looli
 
 import (
-	"io"
 	"github.com/cssivision/router"
+	"html/template"
+	"io"
 	"math"
 	"net/http"
 	"net/url"
@@ -11,22 +12,22 @@ import (
 // Context construct Request and ResponseWriter, provide useful methods
 type Context struct {
 	http.ResponseWriter
-	current  int8
+	current int8
 
 	// http.Request
-	Request  *http.Request
+	Request *http.Request
 
 	// middleware handler for
 	handlers []HandlerFunc
 
 	// Param is a single URL parameter, a map[string]string.
-	Params   router.Params
+	Params router.Params
 
 	// Short for Request.URL.String()
-	URL      string
+	URL string
 
 	// templete dir
-	template string
+	template *template.Template
 }
 
 type JSON map[string]interface{}
@@ -186,10 +187,10 @@ func (c *Context) String(format string, values ...interface{}) {
 }
 
 // JSON write obj to response
-func (c *Context) JSON(obj interface{}) {
-	renderJSON(c.ResponseWriter, obj)
+func (c *Context) JSON(data interface{}) {
+	renderJSON(c.ResponseWriter, data)
 }
 
-func (c *Context) HTML() {
-
+func (c *Context) HTML(name string, data interface{}) {
+	renderHTML(c.ResponseWriter, c.template, name, data)
 }

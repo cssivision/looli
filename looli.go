@@ -10,8 +10,6 @@ type HandlerFunc func(*Context)
 type Engine struct {
 	RouterPrefix
 	router *router.Router
-	noRoute []HandlerFunc
-	noMethod []HandlerFunc
 }
 
 func New() *Engine {

@@ -2,6 +2,7 @@ package looli
 
 import (
 	"github.com/cssivision/router"
+	"html/template"
 	"net/http"
 	"strings"
 )
@@ -12,6 +13,7 @@ type RouterPrefix struct {
 	basePath string
 	router   *router.Router
 	Handlers []HandlerFunc
+	template *template.Template
 }
 
 // Use adds middleware to the router.
@@ -82,8 +84,22 @@ func (p *RouterPrefix) Handle(method, pattern string, handlers ...HandlerFunc) {
 	}
 
 	handlers = p.combineHandlers(handlers)
-	muxHandler := composeMiddleware(handlers)
+	muxHandler := p.composeMiddleware(handlers)
 	p.router.Handle(method, pattern, muxHandler)
+}
+
+func (p *RouterPrefix) LoadHTMLGlob(pattern string) {
+	templ := template.Must(template.ParseGlob(pattern))
+	p.SetHTMLTemplate(templ)
+}
+
+func (p *RouterPrefix) LoadHTMLFiles(files ...string) {
+	templ := template.Must(template.ParseFiles(files...))
+	p.SetHTMLTemplate(templ)
+}
+
+func (p *RouterPrefix) SetHTMLTemplate(templ *template.Template) {
+	p.template = templ
 }
 
 // StaticFile register router pattern and response file in path
@@ -112,7 +128,7 @@ func (p *RouterPrefix) NotFound(handlers ...HandlerFunc) {
 		panic("there must be at least one handler")
 	}
 
-	handler := composeMiddleware(handlers)
+	handler := p.composeMiddleware(handlers)
 	p.router.NotFound = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		handler(rw, req, router.Params{})
 	})
@@ -148,7 +164,7 @@ func copyHandlers(dst, src []HandlerFunc) {
 }
 
 // Construct handler for specific router
-func composeMiddleware(handlers []HandlerFunc) router.Handle {
+func (p *RouterPrefix) composeMiddleware(handlers []HandlerFunc) router.Handle {
 	return func(rw http.ResponseWriter, req *http.Request, ps router.Params) {
 		context := &Context{
 			ResponseWriter: rw,
@@ -157,6 +173,7 @@ func composeMiddleware(handlers []HandlerFunc) router.Handle {
 			current:        -1,
 			Params:         ps,
 			URL:            req.URL.String(),
+			template:       p.template,
 		}
 
 		context.Next()
