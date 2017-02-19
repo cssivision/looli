@@ -22,7 +22,7 @@ func (p *RouterPrefix) Use(middleware ...HandlerFunc) {
 	if len(middleware) == 0 {
 		panic("there must be at least one middleware")
 	}
-	p.Handlers = middleware
+	p.Handlers = append(p.Handlers, middleware...)
 }
 
 // Get is a shortcut for router.Handle("GET", path, handle)

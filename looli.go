@@ -3,11 +3,6 @@ package looli
 import (
 	"github.com/cssivision/router"
 	"net/http"
-	"os"
-)
-
-var (
-	DefaultWriter = os.Stdout
 )
 
 type (
@@ -34,7 +29,7 @@ func New() *Engine {
 
 func Default() *Engine {
 	engine := New()
-	engine.RouterPrefix.Handlers = []HandlerFunc{Logger(), Recover}
+	engine.RouterPrefix.Handlers = []HandlerFunc{Logger(), Recover()}
 	return engine
 }
 

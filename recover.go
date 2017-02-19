@@ -1,5 +1,9 @@
 package looli
 
-func Recover(c *Context) {
+import (
+)
 
+func Recover() HandlerFunc {
+    return func(c *Context) {
+    }
 }

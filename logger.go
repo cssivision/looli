@@ -4,10 +4,13 @@ import (
     "fmt"
     "io"
     "time"
+    "os"
 )
 
+var defaultWriter = os.Stdout
+
 func Logger() HandlerFunc {
-    return LoggerWithWriter(DefaultWriter)
+    return LoggerWithWriter(defaultWriter)
 }
 
 func LoggerWithWriter(out io.Writer) HandlerFunc {
