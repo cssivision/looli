@@ -5,8 +5,14 @@ import (
 	"html/template"
 	"io"
 	"math"
+	"net"
 	"net/http"
 	"net/url"
+	"strings"
+)
+
+const (
+	defaultStatusCode = http.StatusOK
 )
 
 // Context construct Request and ResponseWriter, provide useful methods
@@ -24,10 +30,13 @@ type Context struct {
 	Params router.Params
 
 	// Short for Request.URL.String()
-	URL string
+	Path string
 
 	// templete dir
-	template *template.Template
+	template     *template.Template
+	engine       *Engine
+	StatusCode   int
+	ErrorMessage string
 }
 
 type JSON map[string]interface{}
@@ -120,13 +129,37 @@ func (c *Context) DefaultPostForm(key, defaultValue string) string {
 	return val
 }
 
+// ClientIP implements a best effort algorithm to return the real client IP, it parses
+// X-Real-IP and X-Forwarded-For in order to work properly with reverse-proxies such us: nginx or haproxy.
+func (c *Context) ClientIP() string {
+	if c.engine.ForwardedByClientIP {
+		clientIP := strings.TrimSpace(c.Header("X-Real-Ip"))
+		if len(clientIP) > 0 {
+			return clientIP
+		}
+		clientIP = c.Header("X-Forwarded-For")
+		if index := strings.IndexByte(clientIP, ','); index >= 0 {
+			clientIP = clientIP[0:index]
+		}
+		clientIP = strings.TrimSpace(clientIP)
+		if len(clientIP) > 0 {
+			return clientIP
+		}
+	}
+
+	if ip, _, err := net.SplitHostPort(strings.TrimSpace(c.Request.RemoteAddr)); err == nil {
+		return ip
+	}
+	return ""
+}
+
 func (c *Context) Bind(interface{}) {
 
 }
 
 // Write StatusCode to Response Header
-func (c *Context) Status(code int) {
-	c.ResponseWriter.WriteHeader(code)
+func (c *Context) writeHeader() {
+	c.ResponseWriter.WriteHeader(c.StatusCode)
 }
 
 // Redirect to location and use http.StatusFound status code
@@ -181,13 +214,19 @@ func (c *Context) ContentType() string {
 	return ""
 }
 
+func (c *Context) Error(msg string) {
+	c.ErrorMessage = msg
+}
+
 // String write format string to response
 func (c *Context) String(format string, values ...interface{}) {
+	c.writeHeader()
 	renderString(c.ResponseWriter, format, values...)
 }
 
 // JSON write obj to response
 func (c *Context) JSON(data interface{}) {
+	c.writeHeader()
 	renderJSON(c.ResponseWriter, data)
 }
 

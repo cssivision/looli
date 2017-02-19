@@ -14,6 +14,7 @@ type RouterPrefix struct {
 	router   *router.Router
 	Handlers []HandlerFunc
 	template *template.Template
+	engine   *Engine
 }
 
 // Use adds middleware to the router.
@@ -114,7 +115,7 @@ func (p *RouterPrefix) StaticFile(pattern, path string) {
 // Static register router pattern and response file in the request url
 func (p *RouterPrefix) Static(pattern, path string) {
 	handler := func(c *Context) {
-		c.ServeFile(c.URL)
+		c.ServeFile(c.Path)
 	}
 
 	pattern = strings.TrimSuffix(pattern, "/") + "/*filepath"
@@ -172,8 +173,10 @@ func (p *RouterPrefix) composeMiddleware(handlers []HandlerFunc) router.Handle {
 			handlers:       handlers,
 			current:        -1,
 			Params:         ps,
-			URL:            req.URL.String(),
+			Path:           req.URL.String(),
 			template:       p.template,
+			engine:         p.engine,
+			StatusCode:     defaultStatusCode,
 		}
 
 		context.Next()

@@ -3,14 +3,21 @@ package looli
 import (
 	"github.com/cssivision/router"
 	"net/http"
+	"os"
 )
 
-type HandlerFunc func(*Context)
+var (
+	DefaultWriter = os.Stdout
+)
 
-type Engine struct {
-	RouterPrefix
-	router *router.Router
-}
+type (
+	Engine struct {
+		RouterPrefix
+		router              *router.Router
+		ForwardedByClientIP bool
+	}
+	HandlerFunc func(*Context)
+)
 
 func New() *Engine {
 	engine := &Engine{
@@ -21,12 +28,13 @@ func New() *Engine {
 	}
 
 	engine.RouterPrefix.router = engine.router
+	engine.RouterPrefix.engine = engine
 	return engine
 }
 
 func Default() *Engine {
 	engine := New()
-	engine.RouterPrefix.Handlers = []HandlerFunc{Logger, Recover}
+	engine.RouterPrefix.Handlers = []HandlerFunc{Logger(), Recover}
 	return engine
 }
 
