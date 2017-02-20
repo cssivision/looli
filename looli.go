@@ -38,9 +38,9 @@ func New() *Engine {
 		router: router.New(),
 	}
 
+	engine.RouterPrefix.router = engine.router
 	engine.RouterPrefix.router.TrailingSlashRedirect = true
 	engine.RouterPrefix.router.IgnoreCase = false
-	engine.RouterPrefix.router = engine.router
 	engine.RouterPrefix.engine = engine
 	return engine
 }

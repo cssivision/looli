@@ -1,39 +1,39 @@
 package looli
 
 import (
-    "fmt"
-    "io"
-    "time"
-    "os"
+	"fmt"
+	"io"
+	"os"
+	"time"
 )
 
 var defaultWriter = os.Stdout
 
 func Logger() HandlerFunc {
-    return LoggerWithWriter(defaultWriter)
+	return LoggerWithWriter(defaultWriter)
 }
 
 func LoggerWithWriter(out io.Writer) HandlerFunc {
-    return func(c *Context) {
-        start := time.Now()
-        path := c.Path
-        method := c.Request.Method
-        c.Next()
+	return func(c *Context) {
+		start := time.Now()
+		path := c.Path
+		method := c.Request.Method
+		c.Next()
 
-        end := time.Now()
-        latency := end.Sub(start)
-        clientIP := c.ClientIP()
-        statusCode := c.statusCode
+		end := time.Now()
+		latency := end.Sub(start)
+		clientIP := c.ClientIP()
+		statusCode := c.statusCode
 
-        comment := c.ErrorMessage
-        fmt.Fprintf(out, "[LOOLI] %v | %3d | %13v | %s | %-7s %s\n%s",
-                end.Format("2017/02/19 - 20:23:15"),
-                statusCode,
-                latency,
-                clientIP,
-                method,
-                path,
-                comment,
-            )
-    }
+		comment := c.ErrorMessage
+		fmt.Fprintf(out, "[LOOLI] %v | %3d | %13v | %s | %-7s %s\n%s",
+			end.Format("2017/02/19 - 20:23:15"),
+			statusCode,
+			latency,
+			clientIP,
+			method,
+			path,
+			comment,
+		)
+	}
 }
