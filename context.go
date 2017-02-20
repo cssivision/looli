@@ -56,7 +56,11 @@ func (c *Context) Abort() {
 	c.current = abortIndex
 }
 
+// AbortWithStatus prevents pending handlers from being called and set statuscode. Note that this will not 
+// stop the current handler. if you want to stop current handler you should return, after call abort, call 
+// Abort to ensure the remaining handlers for this request are not called.
 func (c *Context) AbortWithStatus(code int) {
+	c.statusCode = code
 	c.Abort()
 }
 
