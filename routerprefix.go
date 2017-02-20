@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+const defaultStatusCode = http.StatusOK
+
 // RouterPrefix is used internally to configure router, a RouterPrefix is associated with a basePath
 // and an array of handlers (middleware)
 type RouterPrefix struct {
@@ -131,6 +133,7 @@ func (p *RouterPrefix) NotFound(handlers ...HandlerFunc) {
 
 	handler := p.composeMiddleware(handlers)
 	p.router.NotFound = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.WriteHeader(http.StatusNotFound)
 		handler(rw, req, router.Params{})
 	})
 }
@@ -176,7 +179,7 @@ func (p *RouterPrefix) composeMiddleware(handlers []HandlerFunc) router.Handle {
 			Path:           req.URL.String(),
 			template:       p.template,
 			engine:         p.engine,
-			StatusCode:     defaultStatusCode,
+			statusCode:     defaultStatusCode,
 		}
 
 		context.Next()

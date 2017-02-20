@@ -23,7 +23,7 @@ func LoggerWithWriter(out io.Writer) HandlerFunc {
         end := time.Now()
         latency := end.Sub(start)
         clientIP := c.ClientIP()
-        statusCode := c.StatusCode
+        statusCode := c.statusCode
 
         comment := c.ErrorMessage
         fmt.Fprintf(out, "[LOOLI] %v | %3d | %13v | %s | %-7s %s\n%s",

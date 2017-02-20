@@ -11,10 +11,6 @@ import (
 	"strings"
 )
 
-const (
-	defaultStatusCode = http.StatusOK
-)
-
 // Context construct Request and ResponseWriter, provide useful methods
 type Context struct {
 	http.ResponseWriter
@@ -35,8 +31,8 @@ type Context struct {
 	// templete dir
 	template     *template.Template
 	engine       *Engine
-	StatusCode   int
 	ErrorMessage string
+	statusCode   int
 }
 
 type JSON map[string]interface{}
@@ -61,7 +57,6 @@ func (c *Context) Abort() {
 }
 
 func (c *Context) AbortWithStatus(code int) {
-	c.StatusCode = code
 	c.Abort()
 }
 
@@ -162,9 +157,9 @@ func (c *Context) Bind(interface{}) {
 
 }
 
-// Write StatusCode to Response Header
-func (c *Context) writeHeader() {
-	c.ResponseWriter.WriteHeader(c.StatusCode)
+func (c *Context) Status(code int) {
+	c.statusCode = code
+	c.ResponseWriter.WriteHeader(code)
 }
 
 // Redirect to location and use http.StatusFound status code
@@ -225,13 +220,11 @@ func (c *Context) Error(msg string) {
 
 // String write format string to response
 func (c *Context) String(format string, values ...interface{}) {
-	c.writeHeader()
 	renderString(c.ResponseWriter, format, values...)
 }
 
 // JSON write obj to response
 func (c *Context) JSON(data interface{}) {
-	c.writeHeader()
 	renderJSON(c.ResponseWriter, data)
 }
 
