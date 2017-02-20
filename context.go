@@ -61,6 +61,7 @@ func (c *Context) Abort() {
 // Abort to ensure the remaining handlers for this request are not called.
 func (c *Context) AbortWithStatus(code int) {
 	c.statusCode = code
+	c.Status(code)
 	c.Abort()
 }
 
@@ -203,11 +204,6 @@ func (c *Context) Cookie(name string) (string, error) {
 // SetCookie use http.SetCookie to set set-cookie header
 func (c *Context) SetCookie(cookie *http.Cookie) {
 	http.SetCookie(c.ResponseWriter, cookie)
-}
-
-// Pipe stream Request.Body to dst
-func (c *Context) Pipe(dst io.Writer) {
-	io.Copy(dst, c.Request.Body)
 }
 
 // ContentType return content-type from header
