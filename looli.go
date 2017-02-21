@@ -51,18 +51,22 @@ func Default() *Engine {
 	return engine
 }
 
+// set IgnoreCase value
 func (engine *Engine) SetIgnoreCase(flag bool) {
 	engine.RouterPrefix.router.IgnoreCase = flag
 }
 
+// set TrailingSlashRedirect value
 func (engine *Engine) SetTrailingSlashRedirect(flag bool) {
 	engine.RouterPrefix.router.TrailingSlashRedirect = flag
 }
 
+// http.Handler interface
 func (engine *Engine) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	engine.router.ServeHTTP(rw, req)
 }
 
+// short for http.ListenAndServe
 func (engine *Engine) Run(address string) (err error) {
 	err = http.ListenAndServe(address, engine.router)
 	return
