@@ -32,14 +32,13 @@ type (
 
 func New() *Engine {
 	engine := &Engine{
-		RouterPrefix: RouterPrefix{
-			basePath: "",
-		},
+		RouterPrefix: RouterPrefix{},
 		router: router.New(),
+		TrailingSlashRedirect: true,
 	}
 
 	engine.RouterPrefix.router = engine.router
-	engine.RouterPrefix.router.TrailingSlashRedirect = true
+	engine.RouterPrefix.router.TrailingSlashRedirect = engine.TrailingSlashRedirect
 	engine.RouterPrefix.router.IgnoreCase = false
 	engine.RouterPrefix.engine = engine
 	return engine
