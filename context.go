@@ -157,8 +157,18 @@ func (c *Context) ClientIP() string {
 	return ""
 }
 
-func (c *Context) Bind(interface{}) {
 
+// Bind checks the Content-Type to select a binding engine automatically,
+// Depending the "Content-Type" header different bindings are used:
+// 		"application/json" --> JSON
+// 		"application/xml"  --> XML
+// otherwise --> returns an error
+// It parses the request's body as JSON if Content-Type == "application/json" using JSON or XML as a JSON input.
+// It decodes the json payload into the struct specified as a pointer.
+// Like ParseBody() but this method also writes a 400 error if the json is not valid.
+func (c *Context) Bind(data interface{}) error {
+	binding := bindDefault(c.Request.Method, c.ContentType())
+	return binding.Bind(c.Request, data)
 }
 
 func (c *Context) Status(code int) {
