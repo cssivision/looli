@@ -107,3 +107,56 @@ func handleMethod(method string, t *testing.T) {
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, string(bodyBytes), serverResponse)
 }
+
+func TestStaticFile(t *testing.T) {
+	router := New()
+	filePath := "./test/index.html"
+	router.StaticFile("/a/b", filePath)
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+	serverURL := server.URL
+	resp, err := http.Get(serverURL + "/a/b")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	sourceFile, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, bodyBytes, sourceFile)
+}
+
+func TestStatic(t *testing.T) {
+	router := New()
+	dirPath := "./test/"
+	fileName := "index.html"
+	router.Static("/a/b", dirPath)
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+	serverURL := server.URL
+	resp, err := http.Get(serverURL + "/a/b/" + fileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	sourceFile, err := ioutil.ReadFile(dirPath + fileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, sourceFile, bodyBytes)
+}

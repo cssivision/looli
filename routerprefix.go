@@ -117,7 +117,8 @@ func (p *RouterPrefix) StaticFile(pattern, path string) {
 // Static register router pattern and response file in the request url
 func (p *RouterPrefix) Static(pattern, path string) {
 	handler := func(c *Context) {
-		c.ServeFile(c.Path)
+		path = strings.TrimSuffix(path, "/") + "/"
+		c.ServeFile(path + c.Param("filepath"))
 	}
 
 	pattern = strings.TrimSuffix(pattern, "/") + "/*filepath"
