@@ -150,10 +150,11 @@ func TestStatic(t *testing.T) {
 	defer resp.Body.Close()
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	sourceFile, err := ioutil.ReadFile(dirPath + fileName)
 	if err != nil {
 		t.Fatal(err)
 	}
+	
+	sourceFile, err := ioutil.ReadFile(dirPath + fileName)
 	if err != nil {
 		t.Fatal(err)
 	}
