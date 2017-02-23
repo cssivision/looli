@@ -4,6 +4,7 @@ import (
 	"github.com/cssivision/router"
 	"html/template"
 	"net/http"
+	"path"
 	"strings"
 )
 
@@ -106,23 +107,32 @@ func (p *RouterPrefix) SetHTMLTemplate(templ *template.Template) {
 }
 
 // StaticFile register router pattern and response file in path
-func (p *RouterPrefix) StaticFile(pattern, path string) {
+func (p *RouterPrefix) StaticFile(pattern, filepath string) {
+	if strings.Contains(pattern, ":") || strings.Contains(pattern, "*") {
+		panic("URL parameters can not be used when serving a static folder")
+	}
 	handler := func(c *Context) {
-		c.ServeFile(path)
+		c.ServeFile(filepath)
 	}
 
-	p.Handle(http.MethodGet, pattern, handler)
+	p.Head(pattern, handler)
+	p.Get(pattern, handler)
 }
 
 // Static register router pattern and response file in the request url
-func (p *RouterPrefix) Static(pattern, path string) {
-	handler := func(c *Context) {
-		path = strings.TrimSuffix(path, "/") + "/"
-		c.ServeFile(path + c.Param("filepath"))
+func (p *RouterPrefix) Static(pattern, dir string) {
+	if strings.Contains(pattern, ":") || strings.Contains(pattern, "*") {
+		panic("URL parameters can not be used when serving a static folder")
 	}
 
-	pattern = strings.TrimSuffix(pattern, "/") + "/*filepath"
-	p.Handle(http.MethodGet, pattern, handler)
+	fileServer := http.StripPrefix(pattern, http.FileServer(http.Dir(dir)))
+	handler := func(c *Context) {
+		fileServer.ServeHTTP(c.ResponseWriter, c.Request)
+	}
+
+	urlPattern := path.Join(pattern, "/*filepath")
+	p.Head(urlPattern, handler)
+	p.Get(urlPattern, handler)
 }
 
 // Configurable NotFound which is called when no matching route is
