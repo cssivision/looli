@@ -213,3 +213,31 @@ func TestNoMethod(t *testing.T) {
 	}
 	assert.Equal(t, serverResponse, string(bodyBytes))
 }
+
+func TestPrefix(t *testing.T) {
+	router := New()
+	serverResponse := "server response"
+	statusCode := 404
+	v1 := router.Prefix("/v1")
+	v1.Get("/a/b", func(c *Context) {
+		c.Status(statusCode)
+		c.String(serverResponse)
+	})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	serverURL := server.URL
+	resp, err := http.Get(serverURL + "/v1/a/b")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	assert.Equal(t, statusCode, resp.StatusCode)
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, serverResponse, string(bodyBytes))
+}
