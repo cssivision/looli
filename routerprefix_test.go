@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -240,4 +241,62 @@ func TestPrefix(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, serverResponse, string(bodyBytes))
+}
+
+func TestLoadHTMLGlob(t *testing.T) {
+	statusCode := 404
+	router := New()
+	router.LoadHTMLGlob("test/templates/*")
+	router.Get("/index.html", func(c *Context) {
+		c.Status(statusCode)
+		c.HTML("index.tmpl", JSON{
+			"title": "Posts",
+		})
+	})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	serverURL := server.URL
+	resp, err := http.Get(serverURL + "/index.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	assert.Equal(t, statusCode, resp.StatusCode)
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.True(t, strings.Contains(string(bodyBytes), "Posts"))
+}
+
+func TestLoadHTMLFiles(t *testing.T) {
+	statusCode := 404
+	router := New()
+	router.LoadHTMLGlob("test/templates/index.tmpl")
+	router.Get("/index.html", func(c *Context) {
+		c.Status(statusCode)
+		c.HTML("index.tmpl", JSON{
+			"title": "Posts",
+		})
+	})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	serverURL := server.URL
+	resp, err := http.Get(serverURL + "/index.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	assert.Equal(t, statusCode, resp.StatusCode)
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.True(t, strings.Contains(string(bodyBytes), "Posts"))
 }
