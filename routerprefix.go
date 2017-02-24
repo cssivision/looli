@@ -135,20 +135,6 @@ func (p *RouterPrefix) Static(pattern, dir string) {
 	p.Get(urlPattern, handler)
 }
 
-// Configurable NotFound which is called when no matching route is
-// found. If it is not set, http.NotFound is used.
-func (p *RouterPrefix) NotFound(handlers ...HandlerFunc) {
-	if len(handlers) == 0 {
-		panic("there must be at least one handler")
-	}
-
-	handler := p.composeMiddleware(handlers)
-	p.router.NotFound = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		rw.WriteHeader(http.StatusNotFound)
-		handler(rw, req, router.Params{})
-	})
-}
-
 // combine middleware and handlers for specific route
 func (p *RouterPrefix) combineHandlers(handlers []HandlerFunc) []HandlerFunc {
 	finalSize := len(p.Handlers) + len(handlers)
@@ -195,4 +181,28 @@ func (p *RouterPrefix) composeMiddleware(handlers []HandlerFunc) router.Handle {
 
 		context.Next()
 	}
+}
+
+// NoRoute which is called when no matching route is found. If it is not set, http.NotFound is used.
+func (p *RouterPrefix) NoRoute(handlers ...HandlerFunc) {
+	if len(handlers) == 0 {
+		panic("there must be at least one handler")
+	}
+
+	handler := p.composeMiddleware(handlers)
+	p.router.NoRoute = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		handler(rw, req, router.Params{})
+	})
+}
+
+// NoMethod which is called when method is not registered. If it is not set, default is used.
+func (p *RouterPrefix) NoMethod(handlers ...HandlerFunc) {
+	if len(handlers) == 0 {
+		panic("there must be at least one handler")
+	}
+
+	handler := p.composeMiddleware(handlers)
+	p.router.NoMethod = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		handler(rw, req, router.Params{})
+	})
 }

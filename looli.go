@@ -32,8 +32,8 @@ type (
 
 func New() *Engine {
 	engine := &Engine{
-		RouterPrefix: RouterPrefix{},
-		router: router.New(),
+		RouterPrefix:          RouterPrefix{},
+		router:                router.New(),
 		TrailingSlashRedirect: true,
 	}
 

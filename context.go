@@ -157,7 +157,6 @@ func (c *Context) ClientIP() string {
 	return ""
 }
 
-
 // Bind checks the Content-Type to select a binding engine automatically,
 // Depending the "Content-Type" header different bindings are used:
 // 		"application/json" --> JSON

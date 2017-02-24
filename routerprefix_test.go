@@ -57,9 +57,7 @@ func handlePostPutMethod(method string, t *testing.T) {
 			t.Error(err)
 		}
 
-		if !bytes.Equal(requestData, requestBody) {
-			t.Errorf("Server read %d request body bytes; want %d", len(requestData), len(requestBody))
-		}
+		assert.Equal(t, requestData, requestBody)
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})
@@ -153,11 +151,65 @@ func TestStatic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 	sourceFile, err := ioutil.ReadFile(dirPath + fileName)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	assert.Equal(t, sourceFile, bodyBytes)
+}
+
+func TestNoRoute(t *testing.T) {
+	router := New()
+	serverResponse := "server response"
+	statusCode := 404
+	router.NoRoute(func(c *Context) {
+		c.Status(statusCode)
+		c.String(serverResponse)
+	})
+	router.Get("/a/b", func(c *Context) {})
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	serverURL := server.URL
+	resp, err := http.Get(serverURL + "/a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	assert.Equal(t, statusCode, resp.StatusCode)
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, serverResponse, string(bodyBytes))
+}
+
+func TestNoMethod(t *testing.T) {
+	router := New()
+	serverResponse := "server response"
+	statusCode := 404
+	router.NoMethod(func(c *Context) {
+		c.Status(statusCode)
+		c.String(serverResponse)
+	})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	serverURL := server.URL
+	resp, err := http.Get(serverURL + "/a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	assert.Equal(t, statusCode, resp.StatusCode)
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, serverResponse, string(bodyBytes))
 }
