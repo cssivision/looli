@@ -295,3 +295,145 @@ func TestSetCookie(t *testing.T) {
 	defer resp.Body.Close()
 	assert.Equal(t, "fake", resp.Cookies()[0].Value)
 }
+
+func TestAbort(t *testing.T) {
+	statusCode := 404
+	serverResponse := "server response"
+	middleware1 := func(c *Context) {
+		c.Status(statusCode)
+		c.Abort()
+		assert.True(t, c.IsAborted())
+	}
+	middleware2 := func(c *Context) {
+		c.String(serverResponse)
+	}
+
+	router := New()
+	router.Use(middleware1, middleware2)
+	router.Get("/a/b", func(c *Context) {})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	serverURL := server.URL
+	resp, err := http.Get(serverURL + "/a/b")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	assert.Equal(t, statusCode, resp.StatusCode)
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Empty(t, bodyBytes)
+}
+
+func TestAbortWithStatus(t *testing.T) {
+	statusCode := 404
+	serverResponse := "server response"
+	middleware1 := func(c *Context) {
+		c.AbortWithStatus(statusCode)
+		assert.True(t, c.IsAborted())
+	}
+	middleware2 := func(c *Context) {
+		c.String(serverResponse)
+	}
+
+	router := New()
+	router.Use(middleware1, middleware2)
+	router.Get("/a/b", func(c *Context) {})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	serverURL := server.URL
+	resp, err := http.Get(serverURL + "/a/b")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	assert.Equal(t, statusCode, resp.StatusCode)
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Empty(t, bodyBytes)
+}
+
+func TestParam(t *testing.T) {
+	router := New()
+	router.Get("/a/:name", func(c *Context) {
+		assert.Equal(t, "cssivision", c.Param("name"))
+		assert.Empty(t, c.Param("other"))
+	})
+
+	router.Get("/b/:filepath", func(c *Context) {
+		assert.Equal(t, "c/cssivision", c.Param("filepath"))
+	})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	serverURL := server.URL
+	resp, err := http.Get(serverURL + "/a/cssivision")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	resp, err = http.Get(serverURL + "/b/c/cssivision")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+}
+
+func TestContentType(t *testing.T) {
+	router := New()
+	router.Get("/a/b", func(c *Context) {
+		assert.Equal(t, "text/plain", c.ContentType())
+	})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	serverURL := server.URL
+	getReq, err := http.NewRequest(http.MethodPost, serverURL+"/a/b", nil)
+	getReq.Header.Set("Content-Type", "text/plain")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp, err := http.DefaultClient.Do(getReq)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+}
+
+func TestString(t *testing.T) {
+	statusCode := 404
+	serverResponse := "server response"
+	router := New()
+	router.Get("/a/b", func(c *Context) {
+		c.Status(statusCode)
+		c.String(serverResponse)
+	})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	serverURL := server.URL
+	resp, err := http.Get(serverURL + "/a/b")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	assert.Equal(t, statusCode, resp.StatusCode)
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, serverResponse, string(bodyBytes))
+}
