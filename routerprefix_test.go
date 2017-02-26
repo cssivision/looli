@@ -275,7 +275,7 @@ func TestLoadHTMLGlob(t *testing.T) {
 func TestLoadHTMLFiles(t *testing.T) {
 	statusCode := 404
 	router := New()
-	router.LoadHTMLGlob("test/templates/index.tmpl")
+	router.LoadHTMLFiles("test/templates/index.tmpl")
 	router.Get("/index.html", func(c *Context) {
 		c.Status(statusCode)
 		c.HTML("index.tmpl", JSON{
@@ -299,4 +299,47 @@ func TestLoadHTMLFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.True(t, strings.Contains(string(bodyBytes), "Posts"))
+}
+
+func TestUse(t *testing.T) {
+	statusCode := 404
+	serverResponse := "server response"
+	middleware1 := func(c *Context) {
+		assert.Equal(t, c.Header("fake-header"), "fake")
+		c.Next()
+		assert.Equal(t, c.ResponseWriter.Header().Get("after-request"), "after")
+	}
+	middleware2 := func(c *Context) {
+		c.SetHeader("response-fake-header", "fake")
+		c.Next()
+		c.String(serverResponse)
+	}
+	router := New()
+	router.Use(middleware1, middleware2)
+	router.Get("/a/b", func(c *Context) {
+		c.Status(statusCode)
+		c.SetHeader("after-request", "after")
+	})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+	serverURL := server.URL
+
+	getReq, err := http.NewRequest(http.MethodGet, serverURL+"/a/b", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	getReq.Header.Set("fake-header", "fake")
+	resp, err := http.DefaultClient.Do(getReq)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	assert.Equal(t, statusCode, resp.StatusCode)
+	assert.Equal(t, resp.Header.Get("response-fake-header"), "fake")
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, serverResponse, string(bodyBytes))
 }
