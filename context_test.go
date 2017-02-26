@@ -2,11 +2,13 @@ package looli
 
 import (
 	"bytes"
+	"encoding/json"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -436,4 +438,72 @@ func TestString(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, serverResponse, string(bodyBytes))
+}
+
+func TestJSON(t *testing.T) {
+	type Info struct {
+		Name string `json: "name"`
+		Age  int    `json: "age"`
+	}
+
+	statusCode := 404
+	router := New()
+	router.Get("/a/b", func(c *Context) {
+		c.Status(statusCode)
+		c.JSON(JSON{
+			"name": "cssivision",
+			"age":  21,
+		})
+	})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	serverURL := server.URL
+	resp, err := http.Get(serverURL + "/a/b")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	assert.Equal(t, statusCode, resp.StatusCode)
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := new(Info)
+	json.Unmarshal(bodyBytes, data)
+	assert.Equal(t, "cssivision", data.Name)
+	assert.Equal(t, 21, data.Age)
+}
+
+func TestHTML(t *testing.T) {
+	statusCode := 404
+	router := New()
+	router.LoadHTMLGlob("test/templates/*")
+	router.Get("/index.html", func(c *Context) {
+		c.Status(statusCode)
+		c.HTML("index.tmpl", JSON{
+			"title": "Posts",
+		})
+	})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	serverURL := server.URL
+	resp, err := http.Get(serverURL + "/index.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	assert.Equal(t, statusCode, resp.StatusCode)
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.True(t, strings.Contains(string(bodyBytes), "Posts"))
+}
+
+func TestBind(t *testing.T) {
+
 }
