@@ -37,12 +37,12 @@ func New() *Engine {
 		TrailingSlashRedirect: true,
 	}
 
-	engine.RouterPrefix.router = engine.router
-	engine.RouterPrefix.router.TrailingSlashRedirect = engine.TrailingSlashRedirect
-	engine.RouterPrefix.router.IgnoreCase = false
-	engine.RouterPrefix.router.NoRoute = http.HandlerFunc(engine.RouterPrefix.noRoute)
-	engine.RouterPrefix.router.NoMethod = http.HandlerFunc(engine.RouterPrefix.noMethod)
 	engine.RouterPrefix.engine = engine
+	engine.RouterPrefix.router = engine.router
+	engine.router.TrailingSlashRedirect = engine.TrailingSlashRedirect
+	engine.router.IgnoreCase = false
+	engine.router.NoRoute = http.HandlerFunc(engine.RouterPrefix.noRoute)
+	engine.router.NoMethod = http.HandlerFunc(engine.RouterPrefix.noMethod)
 	return engine
 }
 
