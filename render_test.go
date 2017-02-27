@@ -57,8 +57,8 @@ func TestRenderString(t *testing.T) {
 
 func TestRenderJSON(t *testing.T) {
 	type Info struct {
-		Name string `json: "name"`
-		Age  int    `json: "age"`
+		Name string `json:"name"`
+		Age  int    `json:"age"`
 	}
 	router := New()
 	router.Get("/", func(c *Context) {
