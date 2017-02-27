@@ -26,8 +26,8 @@ func LoggerWithWriter(out io.Writer) HandlerFunc {
 		statusCode := c.statusCode
 
 		comment := c.ErrorMessage
-		fmt.Fprintf(out, "[LOOLI] %v | %3d | %13v | %s | %-7s %s\n%s",
-			end.Format("2017/02/19 - 20:23:15"),
+		fmt.Fprintf(out, "[looli] %v | %3d | %8v | %s | %-7s %s\n%s",
+			end.Format("2006/01/01 - 15:04:05"),
 			statusCode,
 			latency,
 			clientIP,
