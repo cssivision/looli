@@ -305,6 +305,7 @@ func TestAbort(t *testing.T) {
 		c.Status(statusCode)
 		c.Abort()
 		assert.True(t, c.IsAborted())
+		assert.Equal(t, c.current, abortIndex)
 	}
 	middleware2 := func(c *Context) {
 		c.String(serverResponse)
@@ -338,6 +339,7 @@ func TestAbortWithStatus(t *testing.T) {
 	middleware1 := func(c *Context) {
 		c.AbortWithStatus(statusCode)
 		assert.True(t, c.IsAborted())
+		assert.Equal(t, c.current, abortIndex)
 	}
 	middleware2 := func(c *Context) {
 		c.String(serverResponse)
