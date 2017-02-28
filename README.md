@@ -39,3 +39,47 @@ func main() {
 }
 
 ```
+
+### Named parameter
+
+```go
+package main
+
+import (
+    "net/http"
+    "github.com/cssivision/looli"
+)
+
+func main() {
+    router := looli.Default()
+
+    router.Get("/a/:name", func(c *looli.Context) {
+        c.Status(200)
+        c.String("hello " + c.Param("name") + "!\n")
+    })
+
+    http.ListenAndServe(":8080", router)
+}
+```
+
+### Wildcard pattern
+
+```go
+package main
+
+import (
+    "net/http"
+    "github.com/cssivision/looli"
+)
+
+func main() {
+    router := looli.Default()
+
+    router.Get("/a/*name", func(c *looli.Context) {
+        c.Status(200)
+        c.String("hello " + c.Param("name") + "!\n")
+    })
+
+    http.ListenAndServe(":8080", router)
+}
+```
