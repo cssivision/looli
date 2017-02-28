@@ -26,7 +26,9 @@ func RecoverWithWriter(out io.Writer) HandlerFunc {
 					httprequest, _ := httputil.DumpRequest(c.Request, false)
 					logger.Printf("[Recovery] panic recovered:\n%s\n%s\n", string(httprequest), err)
 				}
-				c.AbortWithStatus(500)
+				if !c.written {
+					c.AbortWithStatus(500)
+				}
 			}
 		}()
 		c.Next()

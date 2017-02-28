@@ -32,6 +32,7 @@ type Context struct {
 	engine       *Engine
 	ErrorMessage string
 	statusCode   int
+	written      bool
 }
 
 type JSON map[string]interface{}
@@ -173,6 +174,7 @@ func (c *Context) Bind(data interface{}) error {
 func (c *Context) Status(code int) {
 	c.statusCode = code
 	c.ResponseWriter.WriteHeader(code)
+	c.written = true
 }
 
 // Redirect to location and use http.StatusFound status code
