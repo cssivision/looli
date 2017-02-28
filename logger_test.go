@@ -2,7 +2,7 @@ package looli
 
 import (
 	"bytes"
-	// "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,9 +19,21 @@ func TestLogger(t *testing.T) {
 	router.Patch("/a", func(c *Context) {})
 	router.Head("/a", func(c *Context) {})
 	router.Options("/a", func(c *Context) {})
-	issueRequest(t, router, http.MethodGet, "/a")
-	issueRequest(t, router, http.MethodPost, "/a")
-	issueRequest(t, router, http.MethodGet, "/a/b")
+
+	methods := []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch, http.MethodHead, http.MethodOptions}
+	for _, method := range methods {
+		buffer.Reset()
+		issueRequest(t, router, method, "/a")
+		assert.Contains(t, buffer.String(), method)
+		assert.Contains(t, buffer.String(), "/a")
+		assert.Contains(t, buffer.String(), "200")
+
+		buffer.Reset()
+		issueRequest(t, router, method, "/a/b")
+		assert.Contains(t, buffer.String(), method)
+		assert.Contains(t, buffer.String(), "/a/b")
+		assert.Contains(t, buffer.String(), "404")
+	}
 }
 
 func issueRequest(t *testing.T, router *Engine, method, path string) {
