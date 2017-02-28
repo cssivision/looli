@@ -35,12 +35,13 @@ func New() *Engine {
 		RouterPrefix:          RouterPrefix{},
 		router:                router.New(),
 		TrailingSlashRedirect: true,
+		IgnoreCase:            true,
 	}
 
 	engine.RouterPrefix.engine = engine
 	engine.RouterPrefix.router = engine.router
 	engine.router.TrailingSlashRedirect = engine.TrailingSlashRedirect
-	engine.router.IgnoreCase = false
+	engine.router.IgnoreCase = engine.IgnoreCase
 	engine.router.NoRoute = http.HandlerFunc(engine.RouterPrefix.noRoute)
 	engine.router.NoMethod = http.HandlerFunc(engine.RouterPrefix.noMethod)
 	return engine
@@ -49,7 +50,7 @@ func New() *Engine {
 // Default return engine instance, add logger, recover handler to it.
 func Default() *Engine {
 	engine := New()
-	engine.RouterPrefix.Handlers = []HandlerFunc{Logger(), Recover()}
+	engine.RouterPrefix.Use(Logger(), Recover())
 	return engine
 }
 
