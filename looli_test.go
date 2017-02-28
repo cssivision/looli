@@ -13,7 +13,7 @@ func TestNewEngine(t *testing.T) {
 	assert.Equal(t, "", engine.basePath)
 	assert.Equal(t, engine.engine, engine)
 	assert.Equal(t, engine.router, engine.RouterPrefix.router)
-	assert.True(t, engine.IgnoreCase)
+	assert.False(t, engine.IgnoreCase)
 	assert.False(t, engine.ForwardedByClientIP)
 	assert.True(t, engine.TrailingSlashRedirect)
 	assert.Empty(t, engine.Handlers)

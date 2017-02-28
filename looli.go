@@ -35,7 +35,7 @@ func New() *Engine {
 		RouterPrefix:          RouterPrefix{},
 		router:                router.New(),
 		TrailingSlashRedirect: true,
-		IgnoreCase:            true,
+		IgnoreCase:            false,
 	}
 
 	engine.RouterPrefix.engine = engine
