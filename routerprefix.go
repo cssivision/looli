@@ -207,6 +207,7 @@ func (p *RouterPrefix) rebuild405Handlers() {
 	p.allNoMethod = p.combineHandlers(nil)
 }
 
+// noMethod use as a default handler for router not allowed
 func (p *RouterPrefix) noRoute(rw http.ResponseWriter, req *http.Request) {
 	context := &Context{
 		ResponseWriter: rw,
@@ -224,6 +225,7 @@ func (p *RouterPrefix) noRoute(rw http.ResponseWriter, req *http.Request) {
 	context.Next()
 }
 
+// noMethod use as a default handler for Method not allowed
 func (p *RouterPrefix) noMethod(rw http.ResponseWriter, req *http.Request) {
 	context := &Context{
 		ResponseWriter: rw,
@@ -241,7 +243,7 @@ func (p *RouterPrefix) noMethod(rw http.ResponseWriter, req *http.Request) {
 	context.Next()
 }
 
-// NoRoute which is called when no matching route is found. If it is not set, http.NotFound is used.
+// NoRoute which is called when no matching route is found. If it is not set, noRoute is used.
 func (p *RouterPrefix) NoRoute(handlers ...HandlerFunc) {
 	if len(handlers) == 0 {
 		panic("there must be at least one handler")
@@ -254,7 +256,7 @@ func (p *RouterPrefix) NoRoute(handlers ...HandlerFunc) {
 	})
 }
 
-// NoMethod which is called when method is not registered. If it is not set, default is used.
+// NoMethod which is called when method is not registered. If it is not set, noMethod is used.
 func (p *RouterPrefix) NoMethod(handlers ...HandlerFunc) {
 	if len(handlers) == 0 {
 		panic("there must be at least one handler")
