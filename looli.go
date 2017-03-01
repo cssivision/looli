@@ -7,6 +7,9 @@ import (
 
 type (
 	Engine struct {
+		// A Server defines parameters for running an HTTP server. The zero value for Server is a valid configuration.
+		Server *http.Server
+
 		// router with basePath
 		RouterPrefix
 
@@ -32,6 +35,7 @@ type (
 
 func New() *Engine {
 	engine := &Engine{
+		Server:                &http.Server{},
 		RouterPrefix:          RouterPrefix{},
 		router:                router.New(),
 		TrailingSlashRedirect: true,
@@ -40,6 +44,7 @@ func New() *Engine {
 
 	engine.RouterPrefix.engine = engine
 	engine.RouterPrefix.router = engine.router
+	engine.Server.Handler = engine.router
 	engine.router.TrailingSlashRedirect = engine.TrailingSlashRedirect
 	engine.router.IgnoreCase = engine.IgnoreCase
 	engine.router.NoRoute = http.HandlerFunc(engine.RouterPrefix.noRoute)
@@ -70,7 +75,8 @@ func (engine *Engine) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 }
 
 // short for http.ListenAndServe
-func (engine *Engine) Run(address string) (err error) {
-	err = http.ListenAndServe(address, engine.router)
-	return
+func (engine *Engine) Run(address string) error {
+	server := engine.Server
+	server.Addr = address
+	return server.ListenAndServe()
 }
