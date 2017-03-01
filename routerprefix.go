@@ -42,6 +42,7 @@ func (p *RouterPrefix) UseHandler(handlers ...Handler) {
 	for _, handler := range handlers {
 		middlwares = append(middlwares, handler.Handle)
 	}
+	p.Use(middlwares...)
 }
 
 // Get is a shortcut for router.Handle("GET", path, handle)
