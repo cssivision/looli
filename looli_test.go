@@ -13,9 +13,7 @@ func TestNewEngine(t *testing.T) {
 	assert.Equal(t, "", engine.basePath)
 	assert.Equal(t, engine.engine, engine)
 	assert.Equal(t, engine.router, engine.RouterPrefix.router)
-	assert.False(t, engine.IgnoreCase)
 	assert.False(t, engine.ForwardedByClientIP)
-	assert.True(t, engine.TrailingSlashRedirect)
 	assert.Empty(t, engine.Handlers)
 }
 
@@ -24,6 +22,7 @@ func TestSetIgnoreCase(t *testing.T) {
 	serverResponse := "server response"
 	statusCode := 200
 	router.SetIgnoreCase(false)
+	assert.False(t, router.router.IgnoreCase)
 	router.Get("/a/b", func(c *Context) {
 		c.Status(statusCode)
 		c.String(serverResponse)
@@ -40,6 +39,7 @@ func TestSetIgnoreCase(t *testing.T) {
 	resp.Body.Close()
 
 	router.SetIgnoreCase(true)
+	assert.True(t, router.router.IgnoreCase)
 	resp, err = http.Get(serverURL + "/A/B")
 	if err != nil {
 		t.Fatal(err)

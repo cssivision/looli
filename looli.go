@@ -19,34 +19,22 @@ type (
 		// when set true, implements a best effort algorithm to return the real client IP, it parses
 		// X-Real-IP and X-Forwarded-For in order to work properly with reverse-proxies such us: nginx or haproxy.
 		ForwardedByClientIP bool
-
-		// Enables automatic redirection if the current route can't be matched but a
-		// handler for the path with (without) the trailing slash exists.
-		// TrailingSlashRedirect: /a/b/ -> /a/b
-		// TrailingSlashRedirect: /a/b -> /a/b/
-		// default value is true
-		TrailingSlashRedirect bool
-
-		// Ignore case when matching URL path.
-		IgnoreCase bool
 	}
 	HandlerFunc func(*Context)
 )
 
 func New() *Engine {
 	engine := &Engine{
-		Server:                &http.Server{},
-		RouterPrefix:          RouterPrefix{},
-		router:                router.New(),
-		TrailingSlashRedirect: true,
-		IgnoreCase:            false,
+		Server:       &http.Server{},
+		RouterPrefix: RouterPrefix{},
+		router:       router.New(),
 	}
 
 	engine.RouterPrefix.engine = engine
 	engine.RouterPrefix.router = engine.router
 	engine.Server.Handler = engine.router
-	engine.router.TrailingSlashRedirect = engine.TrailingSlashRedirect
-	engine.router.IgnoreCase = engine.IgnoreCase
+	engine.router.IgnoreCase = false
+	engine.router.TrailingSlashRedirect = true
 	engine.router.NoRoute = http.HandlerFunc(engine.RouterPrefix.noRoute)
 	engine.router.NoMethod = http.HandlerFunc(engine.RouterPrefix.noMethod)
 	return engine
@@ -60,13 +48,13 @@ func Default() *Engine {
 }
 
 // set IgnoreCase value
-func (engine *Engine) SetIgnoreCase(flag bool) {
-	engine.RouterPrefix.router.IgnoreCase = flag
+func (engine *Engine) SetIgnoreCase(ignoreCase bool) {
+	engine.router.IgnoreCase = ignoreCase
 }
 
 // set TrailingSlashRedirect value
-func (engine *Engine) SetTrailingSlashRedirect(flag bool) {
-	engine.RouterPrefix.router.TrailingSlashRedirect = flag
+func (engine *Engine) SetTrailingSlashRedirect(redirect bool) {
+	engine.router.TrailingSlashRedirect = redirect
 }
 
 // http.Handler interface
