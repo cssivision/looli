@@ -23,6 +23,10 @@ type (
 	HandlerFunc func(*Context)
 )
 
+type Handler interface {
+	Handle(*Context)
+}
+
 func New() *Engine {
 	engine := &Engine{
 		Server:       &http.Server{},

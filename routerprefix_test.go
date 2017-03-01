@@ -165,6 +165,10 @@ func TestNoRoute(t *testing.T) {
 	router := New()
 	serverResponse := "server response"
 	statusCode := 404
+	router.Use(func(c *Context) {
+		c.SetHeader("fake-header", "fake")
+	})
+
 	router.NoRoute(func(c *Context) {
 		c.Status(statusCode)
 		c.String(serverResponse)
@@ -180,6 +184,7 @@ func TestNoRoute(t *testing.T) {
 	}
 	defer resp.Body.Close()
 	assert.Equal(t, statusCode, resp.StatusCode)
+	assert.Equal(t, "fake", resp.Header.Get("fake-header"))
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -192,6 +197,11 @@ func TestNoMethod(t *testing.T) {
 	router := New()
 	serverResponse := "server response"
 	statusCode := 404
+
+	router.Use(func(c *Context) {
+		c.SetHeader("fake-header", "fake")
+	})
+
 	router.NoMethod(func(c *Context) {
 		c.Status(statusCode)
 		c.String(serverResponse)
@@ -207,6 +217,7 @@ func TestNoMethod(t *testing.T) {
 	}
 	defer resp.Body.Close()
 	assert.Equal(t, statusCode, resp.StatusCode)
+	assert.Equal(t, "fake", resp.Header.Get("fake-header"))
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -241,6 +252,113 @@ func TestPrefix(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, serverResponse, string(bodyBytes))
+}
+
+func TestPrefixUse(t *testing.T) {
+	t.Run("prefix use1", func(t *testing.T) {
+		router := New()
+		serverResponse := "server response"
+		statusCode := 404
+		router.Use(func(c *Context) {
+			c.SetHeader("fake-header", "fake")
+		})
+
+		router.Get("/a/b", func(c *Context) {
+			c.Status(statusCode)
+			c.String(serverResponse)
+		})
+
+		v1 := router.Prefix("/v1")
+		v1.Use(func(c *Context) {
+			c.SetHeader("version1-header", "version1")
+		})
+
+		v1.Get("/a/b", func(c *Context) {
+			c.Status(statusCode)
+			c.String(serverResponse)
+		})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+
+		serverURL := server.URL
+
+		// test router /v1/a/b
+		resp, err := http.Get(serverURL + "/v1/a/b")
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, statusCode, resp.StatusCode)
+		assert.Equal(t, "fake", resp.Header.Get("fake-header"))
+		assert.Equal(t, resp.Header.Get("version1-header"), "version1")
+
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, serverResponse, string(bodyBytes))
+		resp.Body.Close()
+
+		// test router /a/b
+		resp, err = http.Get(serverURL + "/a/b")
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, statusCode, resp.StatusCode)
+		assert.Equal(t, "fake", resp.Header.Get("fake-header"))
+		assert.Empty(t, resp.Header.Get("version1-header"))
+
+		bodyBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, serverResponse, string(bodyBytes))
+		resp.Body.Close()
+	})
+
+	t.Run("prefix use2", func(t *testing.T) {
+		statusCode := 404
+		serverResponse := "server response"
+		middleware1 := func(c *Context) {
+			assert.Equal(t, c.Header("fake-header"), "fake")
+			c.Next()
+			assert.Equal(t, c.ResponseWriter.Header().Get("after-request"), "after")
+		}
+		middleware2 := func(c *Context) {
+			c.SetHeader("response-fake-header", "fake")
+			c.Next()
+			c.String(serverResponse)
+		}
+		router := New()
+		v1 := router.Prefix("/v1")
+		v1.Use(middleware1, middleware2)
+		v1.Get("/a/b", func(c *Context) {
+			c.Status(statusCode)
+			c.SetHeader("after-request", "after")
+		})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+		serverURL := server.URL
+
+		getReq, err := http.NewRequest(http.MethodGet, serverURL+"/v1/a/b", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		getReq.Header.Set("fake-header", "fake")
+		resp, err := http.DefaultClient.Do(getReq)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		assert.Equal(t, statusCode, resp.StatusCode)
+		assert.Equal(t, resp.Header.Get("response-fake-header"), "fake")
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, serverResponse, string(bodyBytes))
+	})
 }
 
 func TestLoadHTMLGlob(t *testing.T) {
@@ -326,50 +444,6 @@ func TestUse(t *testing.T) {
 	serverURL := server.URL
 
 	getReq, err := http.NewRequest(http.MethodGet, serverURL+"/a/b", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	getReq.Header.Set("fake-header", "fake")
-	resp, err := http.DefaultClient.Do(getReq)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
-	assert.Equal(t, statusCode, resp.StatusCode)
-	assert.Equal(t, resp.Header.Get("response-fake-header"), "fake")
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, serverResponse, string(bodyBytes))
-}
-
-func TestPreifxUse(t *testing.T) {
-	statusCode := 404
-	serverResponse := "server response"
-	middleware1 := func(c *Context) {
-		assert.Equal(t, c.Header("fake-header"), "fake")
-		c.Next()
-		assert.Equal(t, c.ResponseWriter.Header().Get("after-request"), "after")
-	}
-	middleware2 := func(c *Context) {
-		c.SetHeader("response-fake-header", "fake")
-		c.Next()
-		c.String(serverResponse)
-	}
-	router := New()
-	v1 := router.Prefix("/v1")
-	v1.Use(middleware1, middleware2)
-	v1.Get("/a/b", func(c *Context) {
-		c.Status(statusCode)
-		c.SetHeader("after-request", "after")
-	})
-
-	server := httptest.NewServer(router)
-	defer server.Close()
-	serverURL := server.URL
-
-	getReq, err := http.NewRequest(http.MethodGet, serverURL+"/v1/a/b", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

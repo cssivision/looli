@@ -36,6 +36,14 @@ func (p *RouterPrefix) Use(middleware ...HandlerFunc) {
 	p.rebuild405Handlers()
 }
 
+// Use adds handlers as middleware to the router.
+func (p *RouterPrefix) UseHandler(handlers ...Handler) {
+	var middlwares []HandlerFunc
+	for _, handler := range handlers {
+		middlwares = append(middlwares, handler.Handle)
+	}
+}
+
 // Get is a shortcut for router.Handle("GET", path, handle)
 func (p *RouterPrefix) Get(pattern string, handlers ...HandlerFunc) {
 	p.Handle(http.MethodGet, pattern, handlers...)
