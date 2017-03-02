@@ -196,27 +196,43 @@ func (c *Context) Bind(data interface{}) error {
 	return binding.Bind(c.Request, data)
 }
 
+// WriteHeader sends an HTTP response header with status code.
+// If WriteHeader is not called explicitly, the first call to Write
+// will trigger an implicit WriteHeader(http.StatusOK).
+// Thus explicit calls to WriteHeader are mainly used to
+// send error codes.
 func (c *Context) Status(code int) {
 	c.statusCode = code
 	c.ResponseWriter.WriteHeader(code)
 	c.written = true
 }
 
-// Redirect to location and use http.StatusFound status code
+// Redirect replies to the request with a redirect to url, which may be a path relative to the request path.
 func (c *Context) Redirect(location string) {
 	http.Redirect(c.ResponseWriter, c.Request, location, http.StatusFound)
 }
 
+// ServeFile replies to the request with the contents of the named file or directory.
+// If the provided file or directory name is a relative path, it is interpreted
+// relative to the current directory and may ascend to parent directories. If
+// the provided name is constructed from user input, it should be sanitized
+// before calling ServeFile. As a precaution, ServeFile will reject requests
+// where r.URL.Path contains a ".." path element.
+
+// As a special case, ServeFile redirects any request where r.URL.Path ends in
+// "/index.html" to the same path, without the final "index.html". To avoid
+// such redirects either modify the path or use ServeContent.
 func (c *Context) ServeFile(filepath string) {
 	http.ServeFile(c.ResponseWriter, c.Request, filepath)
 }
 
-// Get Header by key
+// Get gets the first value associated with the given key. It is case insensitive
 func (c *Context) Header(key string) string {
 	return c.Request.Header.Get(key)
 }
 
-// Set Header by key and value
+// Set sets the header entries associated with key to the single element value.
+// It replaces any existing values associated with key.
 func (c *Context) SetHeader(key, value string) {
 	if value == "" {
 		c.ResponseWriter.Header().Del(key)
