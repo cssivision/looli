@@ -184,17 +184,10 @@ func copyHandlers(dst, src []HandlerFunc) {
 // Construct handler for specific router
 func (p *RouterPrefix) composeMiddleware(handlers []HandlerFunc) router.Handle {
 	return func(rw http.ResponseWriter, req *http.Request, ps router.Params) {
-		context := &Context{
-			ResponseWriter: rw,
-			Request:        req,
-			handlers:       handlers,
-			current:        -1,
-			Params:         ps,
-			Path:           req.URL.Path,
-			template:       p.template,
-			engine:         p.engine,
-			statusCode:     defaultStatusCode,
-		}
+		context := NewContext(p, rw, req)
+
+		context.handlers = handlers
+		context.Params = ps
 
 		context.Next()
 	}
@@ -210,37 +203,23 @@ func (p *RouterPrefix) rebuild405Handlers() {
 
 // noMethod use as a default handler for router not allowed
 func (p *RouterPrefix) noRoute(rw http.ResponseWriter, req *http.Request) {
-	context := &Context{
-		ResponseWriter: rw,
-		Request:        req,
-		handlers:       p.allNoRoute,
-		current:        -1,
-		Path:           req.URL.String(),
-		template:       p.template,
-		engine:         p.engine,
-		statusCode:     defaultStatusCode,
-	}
+	context := NewContext(p, rw, req)
+	context.handlers = p.allNoRoute
 
 	context.Status(http.StatusNotFound)
 	context.String(default404Body)
+
 	context.Next()
 }
 
 // noMethod use as a default handler for Method not allowed
 func (p *RouterPrefix) noMethod(rw http.ResponseWriter, req *http.Request) {
-	context := &Context{
-		ResponseWriter: rw,
-		Request:        req,
-		handlers:       p.allNoMethod,
-		current:        -1,
-		Path:           req.URL.Path,
-		template:       p.template,
-		engine:         p.engine,
-		statusCode:     defaultStatusCode,
-	}
+	context := NewContext(p, rw, req)
+	context.handlers = p.allNoMethod
 
 	context.Status(http.StatusMethodNotAllowed)
 	context.String(default405Body)
+
 	context.Next()
 }
 

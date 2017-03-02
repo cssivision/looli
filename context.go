@@ -50,6 +50,19 @@ type JSON map[string]interface{}
 
 const abortIndex int8 = math.MaxInt8 / 2
 
+func NewContext(p *RouterPrefix, rw http.ResponseWriter, req *http.Request) *Context {
+	return &Context{
+		ResponseWriter: rw,
+		Request:        req,
+		current:        -1,
+		Path:           req.URL.Path,
+		Method:         req.Method,
+		template:       p.template,
+		engine:         p.engine,
+		statusCode:     defaultStatusCode,
+	}
+}
+
 // Next should be used only inside middleware. It executes the pending handlers in the chain
 // inside the calling handler
 func (c *Context) Next() {
