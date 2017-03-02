@@ -229,12 +229,3 @@ func setFloatField(val string, bitSize int, field reflect.Value) error {
 	}
 	return err
 }
-
-// Don't pass in pointers to bind to. Can lead to bugs. See:
-// https://github.com/codegangsta/martini-contrib/issues/40
-// https://github.com/codegangsta/martini-contrib/pull/34#issuecomment-29683659
-func ensureNotPointer(obj interface{}) {
-	if reflect.TypeOf(obj).Kind() == reflect.Ptr {
-		panic("Pointers are not accepted as binding models")
-	}
-}
