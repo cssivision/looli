@@ -400,18 +400,28 @@ func TestAbort(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"
 	middleware1 := func(c *Context) {
-		c.Status(statusCode)
+		c.SetHeader("fake-header4", "fake4")
+		c.Next()
+	}
+
+	middleware2 := func(c *Context) {
+		c.SetHeader("fake-header3", "fake3")
 		c.Abort()
 		assert.True(t, c.IsAborted())
 		assert.Equal(t, c.current, abortIndex)
-	}
-	middleware2 := func(c *Context) {
+		c.Status(statusCode)
 		c.String(serverResponse)
 	}
 
+	middleware3 := func(c *Context) {
+		c.SetHeader("fake-header2", "fake2")
+	}
+
 	router := New()
-	router.Use(middleware1, middleware2)
-	router.Get("/a/b", func(c *Context) {})
+	router.Use(middleware1, middleware2, middleware3)
+	router.Get("/a/b", func(c *Context) {
+		c.SetHeader("fake-header1", "fake1")
+	})
 
 	server := httptest.NewServer(router)
 	defer server.Close()
@@ -424,11 +434,15 @@ func TestAbort(t *testing.T) {
 	defer resp.Body.Close()
 
 	assert.Equal(t, statusCode, resp.StatusCode)
+	assert.Empty(t, resp.Header.Get("fake-header1"))
+	assert.Empty(t, resp.Header.Get("fake-header2"))
+	assert.Equal(t, "fake3", resp.Header.Get("fake-header3"))
+	assert.Equal(t, "fake4", resp.Header.Get("fake-header4"))
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Empty(t, bodyBytes)
+	assert.Equal(t, serverResponse, string(bodyBytes))
 }
 
 func TestAbortWithStatus(t *testing.T) {

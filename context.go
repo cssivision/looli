@@ -33,6 +33,7 @@ type Context struct {
 	ErrorMessage string
 	statusCode   int
 	written      bool
+	Err          *Error
 }
 
 type JSON map[string]interface{}
@@ -70,6 +71,7 @@ func (c *Context) IsAborted() bool {
 	return c.current >= abortIndex
 }
 
+// Param return the parameters by name in the request path
 func (c *Context) Param(name string) string {
 	return c.Params[name]
 }
@@ -224,8 +226,18 @@ func (c *Context) ContentType() string {
 	return ""
 }
 
-func (c *Context) Error(msg string) {
-	c.ErrorMessage = msg
+func (c *Context) Error(err error) {
+	var parsedError *Error
+	switch err.(type) {
+	case *Error:
+		parsedError = err.(*Error)
+	default:
+		parsedError = &Error{
+			Err: err,
+		}
+	}
+
+	c.Err = parsedError
 }
 
 // String write format string to response
