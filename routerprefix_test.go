@@ -231,6 +231,9 @@ func TestPrefix(t *testing.T) {
 	serverResponse := "server response"
 	statusCode := 404
 	v1 := router.Prefix("/v1")
+	assert.NotNil(t, v1.engine)
+	assert.NotNil(t, v1.router)
+	assert.Equal(t, v1.basePath, "/v1")
 	v1.Get("/a/b", func(c *Context) {
 		c.Status(statusCode)
 		c.String(serverResponse)

@@ -172,6 +172,7 @@ func (p *RouterPrefix) Prefix(basePath string) *RouterPrefix {
 		basePath: basePath,
 		router:   p.router,
 		Handlers: p.Handlers,
+		engine:   p.engine,
 	}
 }
 
