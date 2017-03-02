@@ -13,27 +13,37 @@ import (
 // Context construct Request and ResponseWriter, provide useful methods
 type Context struct {
 	http.ResponseWriter
+
+	// current handler that processing request
 	current int8
 
-	// http.Request
+	// Short for http.Request
 	Request *http.Request
 
-	// middleware handler for
+	// middleware handlers
 	handlers []HandlerFunc
 
-	// Param is a single URL parameter, a map[string]string.
+	// Param is URL parameter, a map[string]string.
 	Params router.Params
 
-	// Short for Request.URL.String()
+	// Short for Request.URL.Path
 	Path string
 
-	// templete dir
-	template     *template.Template
-	engine       *Engine
-	ErrorMessage string
-	statusCode   int
-	written      bool
-	Err          *Error
+	// Short for Request.Method
+	Method string
+
+	// templete is use to render HTML
+	template *template.Template
+	engine   *Engine
+
+	// statusCode that write to response
+	statusCode int
+
+	// weather have write header to response
+	written bool
+
+	// Error when processing request
+	Err *Error
 }
 
 type JSON map[string]interface{}
