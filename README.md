@@ -10,8 +10,13 @@ looli is a minimalist web framework for go, composed of `router` `middleware` `s
     * [wildcard pattern](#wildcard-pattern)
     * [trailing slash redirect](#trailing-slash-redirect)
     * [case sensitive](#case-sensitive)
+    * [serving static files](*serving-static-files)
 * [Context](#context)
-    * [Query and Form](#query-and-form)
+    * [query and form](#query-and-form)
+    * [header and cookie](#header-and-form)
+    * [data binding](#data-binding)
+    * [string xml json rendering](#string-xml-json-rendering)
+    * [html rendering](#html-rendering)
 
 # Installation
 
@@ -219,6 +224,29 @@ func main() {
 }
 ```
 
+### Serving static files
+
+```go
+package main
+
+import (
+    "net/http"
+    "github.com/cssivision/looli"
+)
+
+func main() {
+    router := looli.Default()
+    
+    // Serve file in the path
+    router.StaticFile("/somefile.go", "file/path")
+
+    // Serve files in staic directory
+    router.Static("/static", "./static")
+
+    http.ListenAndServe(":8080", router)
+}
+```
+
 ## Context
 
 Context supply some syntactic sugar.
@@ -263,6 +291,115 @@ curl 'localhost:8080/query?id=1&name=cssivision'
 ```
 
 form 
-```
+```sh
 curl -d 'age=21&other=haha' 'localhost:8080/form?id=1&name=cssivision'
 ```
+
+### Header and Cookie
+
+Use method to operate header and cookie
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/cssivision/looli"
+    "log"
+    "net/http"
+)
+
+func main() {
+    router := looli.Default()
+
+    router.Get("/header", func(c *looli.Context) {
+        fmt.Println(c.Header("User-Agent"))
+        c.SetHeader("fake-header", "fake")
+        c.Status(200)
+        c.String("fake header has setted\n")
+    })
+
+    router.Get("/cookie", func(c *looli.Context) {
+        val, _ := c.Cookie("fake-cookie")
+        fmt.Println(val)
+        c.SetCookie(&http.Cookie{
+            Name: "fake-cookie",
+            Value: "fake",
+        })
+        c.Status(200)
+        c.String("fake cookie has setted\n")
+    })
+
+    log.Fatal(router.Run(":8080"))
+}
+```
+
+### Data binding
+
+To bind a request into a type, use data binding, data can from query, post body. currently support binding of JSON, XML and standard form values (x-www-form-urlencoded and multipart/form-data). When using the Bind-method, the binder depending on the Content-Type header.
+
+Note that you need to set the corresponding binding tag on all fields you want to bind. For example, when binding from JSON, set json:"fieldname".
+
+```go 
+package main
+
+import (
+    "fmt"
+    "github.com/cssivision/looli"
+    "net/http"
+)
+
+type Infomation struct {
+    Name string`json:"name"`
+    Age int`json:"age"`
+}
+
+func main() {
+    router := looli.Default()
+
+    // curl 'localhost:8080/query?name=cssivision&age=21'
+    router.Get("/query", func(c *looli.Context) {
+        query := new(Infomation)
+        if err := c.Bind(query); err != nil {
+            fmt.Println(err)
+            return
+        }
+        fmt.Println(query.Name)
+        fmt.Println(query.Age)
+        c.Status(200)
+        c.JSON(query)
+    })
+
+    // curl -d "name=cssivision&age=21" 'localhost:8080/form'
+    router.Post("/form", func(c *looli.Context) {
+        form := new(Infomation)
+        if err := c.Bind(form); err != nil {
+            fmt.Println(err)
+            return
+        }
+        fmt.Println(form.Name)
+        fmt.Println(form.Age)
+        c.Status(200)
+        c.JSON(form)
+    })
+
+    // curl  -H "Content-Type: application/json" -X POST -d '{"name":"cssivision","age":21}' localhost:8080/json
+    router.Post("/json", func(c *looli.Context) {
+        json := new(Infomation)
+        if err := c.Bind(json); err != nil {
+            fmt.Println(err)
+            return
+        }
+        fmt.Println(json.Name)
+        fmt.Println(json.Age)
+        c.Status(200)
+        c.JSON(json)
+    })
+
+    http.ListenAndServe(":8080", router)
+}
+```
+
+### String XML JSON rendering
+
+### HTML rendering
