@@ -476,7 +476,6 @@ templates/index.tmpl
     </h1>
 </html>
 ```
-```
 
 ## Middleware
 
