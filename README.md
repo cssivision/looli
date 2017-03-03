@@ -15,8 +15,11 @@ looli is a minimalist web framework for go, composed of `router` `middleware` `s
     * [query and form](#query-and-form)
     * [header and cookie](#header-and-cookie)
     * [data binding](#data-binding)
-    * [string xml json rendering](#string-xml-json-rendering)
+    * [string xml json rendering](#string-json-rendering)
     * [html rendering](#html-rendering)
+* [Middleware](#middleware)
+    * [using middleware](*using-middleware)
+    * [custome middleware](*custome-middleware)
 
 # Installation
 
@@ -400,6 +403,153 @@ func main() {
 }
 ```
 
-### String XML JSON rendering
+### String JSON rendering
+
+```go
+package main
+
+import (
+    "github.com/cssivision/looli"
+    "net/http"
+)
+
+func main() {
+    router := looli.Default()
+
+    router.Get("/string", func(c *looli.Context) {
+        c.String("the response is %s\n", "string")
+    })
+
+    router.Get("/json1", func(c *looli.Context) {
+        c.JSON(looli.JSON{
+            "name": "cssivision",
+            "age": 21,
+        })
+    })
+
+    router.Get("/json2", func(c *looli.Context) {
+        var msg struct {
+            Name string`json:"name"`
+            Age int`json:"age"`
+        }
+
+        msg.Name = "cssivision"
+        msg.Age = 21
+
+        c.JSON(msg)
+    })
+
+    http.ListenAndServe(":8080", router)
+}
+```
 
 ### HTML rendering
+
+```
+package main
+
+import (
+    "github.com/cssivision/looli"
+    "net/http"
+)
+
+func main() {
+    router := looli.Default()
+
+    router.LoadHTMLGlob("templates/*")
+    router.Get("/html", func(c *looli.Context) {    
+        c.HTML("index.tmpl", looli.JSON{
+            "title": "my site",
+        })
+    })
+
+    http.ListenAndServe(":8080", router)
+}
+```
+
+templates/index.tmpl
+
+```html 
+<html>
+    <h1>
+        {{ .title }}
+    </h1>
+</html>
+```
+```
+
+## Middleware
+
+`looli.Default()` with middleware `Logger()` `Recover()` by default, without middleware use `looli.New()` instead.
+
+### Using middleware
+
+```go
+package main
+
+import (
+    "net/http"
+    "github.com/cssivision/looli"
+)
+
+func main() {
+    router := looli.New()
+
+    // global middleware
+    router.Use(looli.Logger())
+    router.Get("/a", func(c *looli.Context) {
+        c.Status(200)
+        c.String("hello world!\n")
+    })
+
+    v1 := router.Prefix("/v1")
+
+    // logger middleware only work for /v1 prefix router
+    v1.Use(looli.Recover())
+    v1.Get("/a", func(c *looli.Context) {
+        panic("error!")
+        c.Status(200)
+        c.String("hello world!\n")
+    })
+
+    http.ListenAndServe(":8080", router)
+}
+```
+
+### Custome middleware
+
+```go
+package main
+
+import (
+    "log"
+    "net/http"
+    "github.com/cssivision/looli"
+    "time"
+)
+
+func Logger() looli.HandlerFunc {
+    return func(c *looli.Context) {
+        t := time.Now()
+        // before request
+        c.Next()
+        // after request
+        latency := time.Since(t)
+        log.Print(latency)
+    }
+}
+
+func main() {
+    router := looli.New()
+
+    // global middleware
+    router.Use(Logger())
+    router.Get("/a", func(c *looli.Context) {
+        c.Status(200)
+        c.String("hello world!\n")
+    })
+
+    http.ListenAndServe(":8080", router)
+}
+```
+
