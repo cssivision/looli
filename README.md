@@ -1,6 +1,6 @@
 # Introduction
 
-looli is a minimalist web framework for go, composed of `router` `middware` `syntactic sugar`.
+looli is a minimalist web framework for go, composed of `router` `middleware` `syntactic sugar`.
 
 # Feature
 
