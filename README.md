@@ -1,6 +1,17 @@
 # Introduction
 
-looli is a minimalist web framework for go
+looli is a minimalist web framework for go, composed of `router` `middware` `syntactic sugar`.
+
+# Feature
+
+* [Router](#router)
+    * [full method support](#using-get-post-put-patch-delete-and-options)
+    * [named parameter](#named-parameter)
+    * [wildcard pattern](#wildcard-pattern)
+    * [trailing slash redirect](#trailing-slash-redirect)
+    * [case sensitive](#case-sensitive)
+* [Context](#context)
+    * [Query and Form](#query-and-form)
 
 # Installation
 
@@ -113,7 +124,7 @@ func main() {
 
 ### Trailing slash redirect
 
-By default `TrailingSlashRedirect = true` which means if we register path `/a/b`, we can request with `/a/b/`, conversely also success. redirect will work only in the situation that the request can not found.
+By default will redirect, which means if we register path `/a/b`, we can request with `/a/b/`, conversely also success. redirect will work only in the situation that the request can not found, if both define path `/a/b` and `/a/b/`, redirect will not work.
 
 ```
 /a/b -> /a/b/
@@ -146,7 +157,7 @@ func main() {
 
 ### Case sensitive
 
-By default `IgnoreCase = false`, which means if we register path `/a/b`, request with `/A/B` will get `404 not found`. if we set `IgnoreCase = true`, request with `/A/B` will success.
+By default is not case sensitive, which means if we register path `/a/b`, request with `/A/B` will get `404 not found`. if we set `true`, request path with `/A/B` will success.
 
 ```go
 package main
@@ -206,4 +217,52 @@ func main() {
 
     http.ListenAndServe(":8080", router)
 }
+```
+
+## Context
+
+Context supply some syntactic sugar.
+
+### Query and Form
+
+```go
+package main
+
+import (
+    "net/http"
+    "github.com/cssivision/looli"
+)
+
+func main() {
+    router := looli.Default()
+
+    router.Get("/query", func(c *looli.Context) {
+        id := c.Query("id")
+        name := c.DefaultQuery("name", "cssivision")
+        c.Status(200)
+        c.String("hello %s, %s\n", id, name)
+    })
+
+    router.Post("/form", func(c *looli.Context) {
+        name := c.DefaultPostForm("name", "somebody")
+        age := c.PostForm("age")
+        c.Status(200)
+        c.JSON(looli.JSON{
+            "name": name,
+            "age": age,
+        })
+    })
+
+    http.ListenAndServe(":8080", router)
+}
+```
+
+query
+```sh
+curl 'localhost:8080/query?id=1&name=cssivision'
+```
+
+form 
+```
+curl -d 'age=21&other=haha' 'localhost:8080/form?id=1&name=cssivision'
 ```
