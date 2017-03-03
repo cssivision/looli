@@ -18,8 +18,8 @@ looli is a minimalist web framework for go, composed of `router` `middleware` `s
     * [string xml json rendering](#string-json-rendering)
     * [html rendering](#html-rendering)
 * [Middleware](#middleware)
-    * [using middleware](*using-middleware)
-    * [custome middleware](*custome-middleware)
+    * [using middleware](#using-middleware)
+    * [custome middleware](#custome-middleware)
 
 # Installation
 
