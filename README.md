@@ -10,7 +10,7 @@ looli is a minimalist web framework for go.
     * [wildcard pattern](#wildcard-pattern)
     * [trailing slash redirect](#trailing-slash-redirect)
     * [case sensitive](#case-sensitive)
-    * [serving static files](*serving-static-files)
+    * [serving static files](#serving-static-files)
 * [Context](#context)
     * [query and form](#query-and-form)
     * [header and cookie](#header-and-cookie)
