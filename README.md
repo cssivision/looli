@@ -1,6 +1,6 @@
 # Introduction
 
-looli is a minimalist web framework for go, composed of `router` `middleware` `syntactic sugar`.
+looli is a minimalist web framework for go.
 
 # Feature
 
@@ -10,7 +10,7 @@ looli is a minimalist web framework for go, composed of `router` `middleware` `s
     * [wildcard pattern](#wildcard-pattern)
     * [trailing slash redirect](#trailing-slash-redirect)
     * [case sensitive](#case-sensitive)
-    * [serving static files](*serving-static-files)
+    * [serving static files](#serving-static-files)
 * [Context](#context)
     * [query and form](#query-and-form)
     * [header and cookie](#header-and-cookie)
@@ -239,7 +239,7 @@ import (
 
 func main() {
     router := looli.Default()
-    
+
     // Serve file in the path
     router.StaticFile("/somefile.go", "file/path")
 
@@ -293,7 +293,7 @@ query
 curl 'localhost:8080/query?id=1&name=cssivision'
 ```
 
-form 
+form
 ```sh
 curl -d 'age=21&other=haha' 'localhost:8080/form?id=1&name=cssivision'
 ```
@@ -343,7 +343,7 @@ To bind a request into a type, use data binding, data can from query, post body.
 
 Note that you need to set the corresponding binding tag on all fields you want to bind. For example, when binding from JSON, set json:"fieldname".
 
-```go 
+```go
 package main
 
 import (
@@ -457,7 +457,7 @@ func main() {
     router := looli.Default()
 
     router.LoadHTMLGlob("templates/*")
-    router.Get("/html", func(c *looli.Context) {    
+    router.Get("/html", func(c *looli.Context) {
         c.HTML("index.tmpl", looli.JSON{
             "title": "my site",
         })
@@ -469,7 +469,7 @@ func main() {
 
 templates/index.tmpl
 
-```html 
+```html
 <html>
     <h1>
         {{ .title }}
@@ -552,7 +552,7 @@ func main() {
 }
 ```
 
-# TODO 
+# TODO
 * session middleware
 * csrf middleware
 * cors middleware
