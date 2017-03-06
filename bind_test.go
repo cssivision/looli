@@ -15,9 +15,13 @@ import (
 
 func TestBindJSON(t *testing.T) {
 	type Info struct {
-		Name  string `json:"name"`
-		Age   int    `json:"age"`
-		Other string `json:"other"`
+		Name    string `json:"name"`
+		Age     int    `json:"age"`
+		Other   string `json:"other"`
+		Payload struct {
+			A string `json:"a"`
+			B int    `json:"b"`
+		} `json:"payload"`
 	}
 
 	statusCode := 404
@@ -33,6 +37,8 @@ func TestBindJSON(t *testing.T) {
 		assert.Equal(t, "cssivision", form.Name)
 		assert.Equal(t, 21, form.Age)
 		assert.Empty(t, form.Other)
+		assert.Equal(t, "aaa", form.Payload.A)
+		assert.Equal(t, 222, form.Payload.B)
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})
@@ -41,9 +47,13 @@ func TestBindJSON(t *testing.T) {
 	defer server.Close()
 
 	serverURL := server.URL
-	body, err := json.Marshal(Info{
-		Name: "cssivision",
-		Age:  21,
+	body, err := json.Marshal(JSON{
+		"name": "cssivision",
+		"age":  21,
+		"payload": map[string]interface{}{
+			"a": "aaa",
+			"b": 222,
+		},
 	})
 	if err != nil {
 		t.Fatal(err)
