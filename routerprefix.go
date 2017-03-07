@@ -19,11 +19,12 @@ var (
 type RouterPrefix struct {
 	basePath    string
 	router      *router.Router
-	Handlers    []HandlerFunc
+	Middlewares []HandlerFunc
 	template    *template.Template
 	engine      *Engine
 	allNoRoute  []HandlerFunc
 	allNoMethod []HandlerFunc
+	isPrefix    bool
 }
 
 // Use adds middleware to the router.
@@ -31,7 +32,9 @@ func (p *RouterPrefix) Use(middleware ...HandlerFunc) {
 	if len(middleware) == 0 {
 		panic("there must be at least one middleware")
 	}
-	p.Handlers = append(p.Handlers, middleware...)
+
+	p.Middlewares = append(p.Middlewares, middleware...)
+
 	p.rebuild404Handlers()
 	p.rebuild405Handlers()
 }
@@ -104,9 +107,11 @@ func (p *RouterPrefix) Handle(method, pattern string, handlers ...HandlerFunc) {
 		pattern = p.basePath + pattern
 	}
 
-	handlers = p.combineHandlers(handlers)
-	muxHandler := p.composeMiddleware(handlers)
-	p.router.Handle(method, pattern, muxHandler)
+	if p.isPrefix {
+		handlers = p.combineHandlers(handlers)
+	}
+	handler := p.composeHandlers(handlers)
+	p.router.Handle(method, pattern, handler)
 }
 
 func (p *RouterPrefix) LoadHTMLGlob(pattern string) {
@@ -154,13 +159,13 @@ func (p *RouterPrefix) Static(pattern, dir string) {
 
 // combine middleware and handlers for specific route
 func (p *RouterPrefix) combineHandlers(handlers []HandlerFunc) []HandlerFunc {
-	finalSize := len(p.Handlers) + len(handlers)
+	finalSize := len(p.Middlewares) + len(handlers)
 	if finalSize >= int(abortIndex) {
 		panic("too many handlers")
 	}
 	mergedHandlers := make([]HandlerFunc, finalSize)
-	copyHandlers(mergedHandlers, p.Handlers)
-	copyHandlers(mergedHandlers[len(p.Handlers):], handlers)
+	copyHandlers(mergedHandlers, p.Middlewares)
+	copyHandlers(mergedHandlers[len(p.Middlewares):], handlers)
 	return mergedHandlers
 }
 
@@ -169,10 +174,11 @@ func (p *RouterPrefix) combineHandlers(handlers []HandlerFunc) []HandlerFunc {
 // middlware could be grouped.
 func (p *RouterPrefix) Prefix(basePath string) *RouterPrefix {
 	return &RouterPrefix{
-		basePath: basePath,
-		router:   p.router,
-		Handlers: p.Handlers,
-		engine:   p.engine,
+		basePath:    basePath,
+		router:      p.router,
+		Middlewares: p.Middlewares,
+		engine:      p.engine,
+		isPrefix:    true,
 	}
 }
 
@@ -183,10 +189,9 @@ func copyHandlers(dst, src []HandlerFunc) {
 }
 
 // Construct handler for specific router
-func (p *RouterPrefix) composeMiddleware(handlers []HandlerFunc) router.Handle {
+func (p *RouterPrefix) composeHandlers(handlers []HandlerFunc) router.Handle {
 	return func(rw http.ResponseWriter, req *http.Request, ps router.Params) {
 		context := NewContext(p, rw, req)
-
 		context.handlers = handlers
 		context.Params = ps
 
@@ -220,7 +225,6 @@ func (p *RouterPrefix) noMethod(rw http.ResponseWriter, req *http.Request) {
 
 	context.Status(http.StatusMethodNotAllowed)
 	context.String(default405Body)
-
 	context.Next()
 }
 
@@ -230,8 +234,7 @@ func (p *RouterPrefix) NoRoute(handlers ...HandlerFunc) {
 		panic("there must be at least one handler")
 	}
 
-	handlers = p.combineHandlers(handlers)
-	handler := p.composeMiddleware(handlers)
+	handler := p.composeHandlers(handlers)
 	p.router.NoRoute = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		handler(rw, req, router.Params{})
 	})
@@ -243,9 +246,26 @@ func (p *RouterPrefix) NoMethod(handlers ...HandlerFunc) {
 		panic("there must be at least one handler")
 	}
 
-	handlers = p.combineHandlers(handlers)
-	handler := p.composeMiddleware(handlers)
+	handler := p.composeHandlers(handlers)
 	p.router.NoMethod = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		handler(rw, req, router.Params{})
 	})
+}
+
+func (p *RouterPrefix) composeMiddlewares() func(http.ResponseWriter, *http.Request) {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		context := NewContext(p, rw, req)
+		httpHandler := func(c *Context) {
+			p.router.ServeHTTP(rw, req)
+		}
+
+		handlers := p.combineHandlers([]HandlerFunc{httpHandler})
+		context.handlers = handlers
+		context.Next()
+	}
+}
+
+func (p *RouterPrefix) handleRequest(rw http.ResponseWriter, req *http.Request) {
+	handler := p.composeMiddlewares()
+	handler(rw, req)
 }

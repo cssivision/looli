@@ -63,7 +63,8 @@ func (engine *Engine) SetTrailingSlashRedirect(redirect bool) {
 
 // http.Handler interface
 func (engine *Engine) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	engine.router.ServeHTTP(rw, req)
+	// engine.router.ServeHTTP(rw, req)
+	engine.RouterPrefix.handleRequest(rw, req)
 }
 
 // short for http.ListenAndServe

@@ -1,6 +1,7 @@
 package looli
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -19,7 +20,7 @@ var (
 	}
 )
 
-type CorsOptions struct {
+type CorsOption struct {
 	// AllowedOrigins is a list of origins a cross-domain request can be executed from
 	// If the special "*" value is present in the list, all origins will be allowed.
 	AllowOrigins []string
@@ -54,12 +55,7 @@ type CorsOptions struct {
 	MaxAge time.Duration
 }
 
-func Cors(options ...CorsOptions) HandlerFunc {
-	option := CorsOptions{}
-	if len(options) > 1 {
-		option = options[0]
-	}
-
+func Cors(option CorsOption) HandlerFunc {
 	if option.AllowOrigins == nil {
 		option.AllowOrigins = defaultAllowOrigins
 	}
@@ -88,6 +84,8 @@ func Cors(options ...CorsOptions) HandlerFunc {
 		}
 
 		if !option.AllowOriginsFunc(origin) {
+			c.AbortWithStatus(http.StatusForbidden)
+			c.String(fmt.Sprintf("Origin: %v is not allowed", origin))
 			return
 		}
 

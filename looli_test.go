@@ -14,7 +14,7 @@ func TestNewEngine(t *testing.T) {
 	assert.Equal(t, engine.engine, engine)
 	assert.Equal(t, engine.router, engine.RouterPrefix.router)
 	assert.False(t, engine.ForwardedByClientIP)
-	assert.Empty(t, engine.Handlers)
+	assert.Empty(t, engine.Middlewares)
 }
 
 func TestSetIgnoreCase(t *testing.T) {
