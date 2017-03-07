@@ -169,6 +169,20 @@ func (p *RouterPrefix) combineHandlers(handlers []HandlerFunc) []HandlerFunc {
 	return mergedHandlers
 }
 
+// compose global middleware for all request
+func (p *RouterPrefix) composeMiddlewares() func(http.ResponseWriter, *http.Request) {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		context := NewContext(p, rw, req)
+		httpHandler := func(c *Context) {
+			p.router.ServeHTTP(c.ResponseWriter, c.Request)
+		}
+
+		handlers := p.combineHandlers([]HandlerFunc{httpHandler})
+		context.handlers = handlers
+		context.Next()
+	}
+}
+
 // Prefix creates a new router prefix. You should add all the routes that have common
 // middlwares or the same path prefix. For example, all the routes that use a common
 // middlware could be grouped.
@@ -250,19 +264,6 @@ func (p *RouterPrefix) NoMethod(handlers ...HandlerFunc) {
 	p.router.NoMethod = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		handler(rw, req, router.Params{})
 	})
-}
-
-func (p *RouterPrefix) composeMiddlewares() func(http.ResponseWriter, *http.Request) {
-	return func(rw http.ResponseWriter, req *http.Request) {
-		context := NewContext(p, rw, req)
-		httpHandler := func(c *Context) {
-			p.router.ServeHTTP(rw, req)
-		}
-
-		handlers := p.combineHandlers([]HandlerFunc{httpHandler})
-		context.handlers = handlers
-		context.Next()
-	}
 }
 
 func (p *RouterPrefix) handleRequest(rw http.ResponseWriter, req *http.Request) {

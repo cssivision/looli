@@ -102,6 +102,8 @@ func Cors(option CorsOption) HandlerFunc {
 
 			// invalid preflighted request, missing Access-Control-Request-Method header
 			if requestMethod == "" {
+				c.AbortWithStatus(http.StatusForbidden)
+				c.String("invalid preflighted request, missing Access-Control-Request-Method header")
 				return
 			}
 
@@ -126,11 +128,17 @@ func Cors(option CorsOption) HandlerFunc {
 			if option.MaxAge > 0 {
 				c.SetHeader("Access-Control-Max-Age", strconv.Itoa(int(option.MaxAge.Seconds())))
 			}
-		} else {
-			// handle normal cors request
-			if len(option.ExposeHeaders) > 0 {
-				c.SetHeader("Access-Control-Expose-Headers", strings.Join(option.ExposeHeaders, ", "))
+
+			// origin is alway a specific domain, not "*".
+			// because when AllowCredentials == true, we must specify a domain, and cannot use wildcard.
+			// origin is a specific domain, make it.
+			c.SetHeader("Access-Control-Allow-Origin", origin)
+
+			if option.AllowCredentials {
+				c.SetHeader("Access-Control-Allow-Credentials", "true")
 			}
+			c.AbortWithStatus(http.StatusNoContent)
+			return
 		}
 
 		// origin is alway a specific domain, not "*".
@@ -140,6 +148,11 @@ func Cors(option CorsOption) HandlerFunc {
 
 		if option.AllowCredentials {
 			c.SetHeader("Access-Control-Allow-Credentials", "true")
+		}
+
+		// handle normal cors request
+		if len(option.ExposeHeaders) > 0 {
+			c.SetHeader("Access-Control-Expose-Headers", strings.Join(option.ExposeHeaders, ", "))
 		}
 	}
 }

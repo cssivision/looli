@@ -34,7 +34,6 @@ func TestPanicWithAbort(t *testing.T) {
 	router := New()
 	router.Use(RecoverWithWriter(nil))
 	router.Get("/", func(c *Context) {
-		c.AbortWithStatus(400)
 		panic("error panic")
 	})
 
@@ -48,5 +47,5 @@ func TestPanicWithAbort(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	assert.Equal(t, 400, resp.StatusCode)
+	assert.Equal(t, 500, resp.StatusCode)
 }
