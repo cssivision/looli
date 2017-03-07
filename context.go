@@ -39,9 +39,6 @@ type Context struct {
 	// statusCode that write to response
 	statusCode int
 
-	// weather have write header to response
-	written bool
-
 	// Error when processing request
 	Err *Error
 }
@@ -204,7 +201,6 @@ func (c *Context) Bind(data interface{}) error {
 func (c *Context) Status(code int) {
 	c.statusCode = code
 	c.ResponseWriter.WriteHeader(code)
-	c.written = true
 }
 
 // Redirect replies to the request with a redirect to url, which may be a path relative to the request path.
