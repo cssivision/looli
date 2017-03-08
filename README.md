@@ -445,7 +445,7 @@ func main() {
 
 ### HTML rendering
 
-```
+```go
 package main
 
 import (
