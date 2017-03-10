@@ -19,6 +19,7 @@ looli is a minimalist web framework for go.
     * [html rendering](#html-rendering)
 * [Middleware](#middleware)
     * [using middleware](#using-middleware)
+    * [builtin middlewares](#builtin-middlewares)
     * [custome middleware](#custome-middleware)
 
 # Installation
@@ -514,6 +515,13 @@ func main() {
     http.ListenAndServe(":8080", router)
 }
 ```
+
+### Builtin middlewares
+
+* Logger middleware
+* Recover middleware
+* Cors middleware
+* Csrf middleware(todo)
 
 ### Custome middleware
 
