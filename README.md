@@ -552,6 +552,10 @@ func main() {
 }
 ```
 
+# LICENSE
+
+license can be found [here](https://github.com/cssivision/looli/blob/master/LICENSE)
+
 # TODO
 * csrf middleware
 * ......
