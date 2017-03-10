@@ -553,6 +553,5 @@ func main() {
 ```
 
 # TODO
-* session middleware
 * csrf middleware
 * ......
