@@ -1,7 +1,6 @@
 package looli
 
 import (
-	"github.com/cssivision/router"
 	"html/template"
 	"math"
 	"net"
@@ -9,6 +8,8 @@ import (
 	"net/url"
 	"strings"
 )
+
+var defaultStatusCode = http.StatusOK
 
 // Context construct Request and ResponseWriter, provide useful methods
 type Context struct {
@@ -24,7 +25,7 @@ type Context struct {
 	handlers []HandlerFunc
 
 	// Param is URL parameter, a map[string]string.
-	Params router.Params
+	Params Params
 
 	// Short for Request.URL.Path
 	Path string

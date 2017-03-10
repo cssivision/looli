@@ -16,7 +16,7 @@ func Recover() HandlerFunc {
 func RecoverWithWriter(out io.Writer) HandlerFunc {
 	var logger *log.Logger
 	if out != nil {
-		logger = log.New(out, "\n\n\x1b[31m", log.LstdFlags)
+		logger = log.New(out, "", log.LstdFlags)
 	}
 
 	return func(c *Context) {
@@ -24,10 +24,11 @@ func RecoverWithWriter(out io.Writer) HandlerFunc {
 			if err := recover(); err != nil {
 				if logger != nil {
 					httprequest, _ := httputil.DumpRequest(c.Request, false)
-					logger.Printf("[Recovery] panic recovered:\n%s\n%s\n", string(httprequest), err)
+					logger.Printf("[Recover] panic recovered:\n%s\n%s\n", string(httprequest), err)
 				}
 
 				c.AbortWithStatus(500)
+				return
 			}
 		}()
 		c.Next()

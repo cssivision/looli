@@ -1,7 +1,6 @@
 package looli
 
 import (
-	"github.com/cssivision/router"
 	"html/template"
 	"net/http"
 	"path"
@@ -9,16 +8,15 @@ import (
 )
 
 var (
-	defaultStatusCode = http.StatusOK
-	default404Body    = "404 page not found"
-	default405Body    = "405 method not allowed"
+	default404Body = "404 page not found"
+	default405Body = "405 method not allowed"
 )
 
 // RouterPrefix is used internally to configure router, a RouterPrefix is associated with a basePath
 // and an array of handlers (middleware)
 type RouterPrefix struct {
 	basePath    string
-	router      *router.Router
+	router      *Router
 	Middlewares []HandlerFunc
 	template    *template.Template
 	engine      *Engine
@@ -34,9 +32,6 @@ func (p *RouterPrefix) Use(middleware ...HandlerFunc) {
 	}
 
 	p.Middlewares = append(p.Middlewares, middleware...)
-
-	p.rebuild404Handlers()
-	p.rebuild405Handlers()
 }
 
 // Use adds handlers as middleware to the router.
@@ -110,8 +105,9 @@ func (p *RouterPrefix) Handle(method, pattern string, handlers ...HandlerFunc) {
 	if p.isPrefix {
 		handlers = p.combineHandlers(handlers)
 	}
-	handler := p.composeHandlers(handlers)
-	p.router.Handle(method, pattern, handler)
+
+	// handler := p.composeHandlers(handlers)
+	p.router.Handle(method, pattern, handlers)
 }
 
 func (p *RouterPrefix) LoadHTMLGlob(pattern string) {
@@ -169,12 +165,19 @@ func (p *RouterPrefix) combineHandlers(handlers []HandlerFunc) []HandlerFunc {
 	return mergedHandlers
 }
 
+// copy handlers
+func copyHandlers(dst, src []HandlerFunc) {
+	for index, val := range src {
+		dst[index] = val
+	}
+}
+
 // compose global middleware for all request
 func (p *RouterPrefix) composeMiddlewares() func(http.ResponseWriter, *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		context := NewContext(p, rw, req)
 		httpHandler := func(c *Context) {
-			p.router.ServeHTTP(c.ResponseWriter, c.Request)
+			p.router.handleRequest(c)
 		}
 
 		handlers := p.combineHandlers([]HandlerFunc{httpHandler})
@@ -188,82 +191,22 @@ func (p *RouterPrefix) composeMiddlewares() func(http.ResponseWriter, *http.Requ
 // middlware could be grouped.
 func (p *RouterPrefix) Prefix(basePath string) *RouterPrefix {
 	return &RouterPrefix{
-		basePath:    basePath,
-		router:      p.router,
-		Middlewares: p.Middlewares,
-		engine:      p.engine,
-		isPrefix:    true,
-	}
-}
-
-func copyHandlers(dst, src []HandlerFunc) {
-	for index, val := range src {
-		dst[index] = val
+		basePath: basePath,
+		router:   p.router,
+		engine:   p.engine,
+		isPrefix: true,
 	}
 }
 
 // Construct handler for specific router
-func (p *RouterPrefix) composeHandlers(handlers []HandlerFunc) router.Handle {
-	return func(rw http.ResponseWriter, req *http.Request, ps router.Params) {
+func (p *RouterPrefix) composeHandlers(handlers []HandlerFunc) Handle {
+	return func(rw http.ResponseWriter, req *http.Request, ps Params) {
 		context := NewContext(p, rw, req)
 		context.handlers = handlers
 		context.Params = ps
 
 		context.Next()
 	}
-}
-
-func (p *RouterPrefix) rebuild404Handlers() {
-	p.allNoRoute = p.combineHandlers(nil)
-}
-
-func (p *RouterPrefix) rebuild405Handlers() {
-	p.allNoMethod = p.combineHandlers(nil)
-}
-
-// noMethod use as a default handler for router not allowed
-func (p *RouterPrefix) noRoute(rw http.ResponseWriter, req *http.Request) {
-	context := NewContext(p, rw, req)
-	context.handlers = p.allNoRoute
-
-	context.Status(http.StatusNotFound)
-	context.String(default404Body)
-
-	context.Next()
-}
-
-// noMethod use as a default handler for Method not allowed
-func (p *RouterPrefix) noMethod(rw http.ResponseWriter, req *http.Request) {
-	context := NewContext(p, rw, req)
-	context.handlers = p.allNoMethod
-
-	context.Status(http.StatusMethodNotAllowed)
-	context.String(default405Body)
-	context.Next()
-}
-
-// NoRoute which is called when no matching route is found. If it is not set, noRoute is used.
-func (p *RouterPrefix) NoRoute(handlers ...HandlerFunc) {
-	if len(handlers) == 0 {
-		panic("there must be at least one handler")
-	}
-
-	handler := p.composeHandlers(handlers)
-	p.router.NoRoute = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		handler(rw, req, router.Params{})
-	})
-}
-
-// NoMethod which is called when method is not registered. If it is not set, noMethod is used.
-func (p *RouterPrefix) NoMethod(handlers ...HandlerFunc) {
-	if len(handlers) == 0 {
-		panic("there must be at least one handler")
-	}
-
-	handler := p.composeHandlers(handlers)
-	p.router.NoMethod = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		handler(rw, req, router.Params{})
-	})
 }
 
 func (p *RouterPrefix) handleRequest(rw http.ResponseWriter, req *http.Request) {

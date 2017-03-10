@@ -1,7 +1,6 @@
 package looli
 
 import (
-	"github.com/cssivision/router"
 	"net/http"
 )
 
@@ -14,7 +13,7 @@ type (
 		RouterPrefix
 
 		// router used to match url
-		router *router.Router
+		router *Router
 
 		// when set true, implements a best effort algorithm to return the real client IP, it parses
 		// X-Real-IP and X-Forwarded-For in order to work properly with reverse-proxies such us: nginx or haproxy.
@@ -31,17 +30,28 @@ func New() *Engine {
 	engine := &Engine{
 		Server:       &http.Server{},
 		RouterPrefix: RouterPrefix{},
-		router:       router.New(),
+		router:       NewRouter(),
 	}
 
 	engine.RouterPrefix.engine = engine
 	engine.RouterPrefix.router = engine.router
-	engine.Server.Handler = engine.router
 	engine.router.IgnoreCase = false
 	engine.router.TrailingSlashRedirect = true
-	engine.router.NoRoute = http.HandlerFunc(engine.RouterPrefix.noRoute)
-	engine.router.NoMethod = http.HandlerFunc(engine.RouterPrefix.noMethod)
+	engine.router.NoRoute = []HandlerFunc{noRoute}
+	engine.router.NoMethod = []HandlerFunc{noMethod}
 	return engine
+}
+
+// noRoute use as a default handler for router not matched
+func noRoute(c *Context) {
+	c.Status(http.StatusNotFound)
+	c.String(default404Body)
+}
+
+// noMethod use as a default handler for Method not allowed
+func noMethod(c *Context) {
+	c.Status(http.StatusMethodNotAllowed)
+	c.String(default405Body)
 }
 
 // Default return engine instance, add logger, recover handler to it.
@@ -49,6 +59,24 @@ func Default() *Engine {
 	engine := New()
 	engine.RouterPrefix.Use(Logger(), Recover())
 	return engine
+}
+
+// NoRoute which is called when no matching route is found. If it is not set, noRoute is used.
+func (engine *Engine) NoRoute(handlers ...HandlerFunc) {
+	if len(handlers) == 0 {
+		panic("there must be at least one handler")
+	}
+
+	engine.router.NoRoute = handlers
+}
+
+// NoMethod which is called when method is not registered. If it is not set, noMethod is used.
+func (engine *Engine) NoMethod(handlers ...HandlerFunc) {
+	if len(handlers) == 0 {
+		panic("there must be at least one handler")
+	}
+
+	engine.router.NoMethod = handlers
 }
 
 // set IgnoreCase value
@@ -65,11 +93,4 @@ func (engine *Engine) SetTrailingSlashRedirect(redirect bool) {
 func (engine *Engine) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// engine.router.ServeHTTP(rw, req)
 	engine.RouterPrefix.handleRequest(rw, req)
-}
-
-// short for http.ListenAndServe
-func (engine *Engine) Run(address string) error {
-	server := engine.Server
-	server.Addr = address
-	return server.ListenAndServe()
 }

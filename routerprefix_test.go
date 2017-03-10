@@ -161,7 +161,7 @@ func TestStatic(t *testing.T) {
 	assert.Equal(t, sourceFile, bodyBytes)
 }
 
-func TestNoRoute(t *testing.T) {
+func TestNoRoutePrefix(t *testing.T) {
 	router := New()
 	serverResponse := "server response"
 	statusCode := 404
