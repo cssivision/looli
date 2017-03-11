@@ -106,7 +106,6 @@ func (p *RouterPrefix) Handle(method, pattern string, handlers ...HandlerFunc) {
 		handlers = p.combineHandlers(handlers)
 	}
 
-	// handler := p.composeHandlers(handlers)
 	p.router.Handle(method, pattern, handlers)
 }
 
@@ -195,17 +194,6 @@ func (p *RouterPrefix) Prefix(basePath string) *RouterPrefix {
 		router:   p.router,
 		engine:   p.engine,
 		isPrefix: true,
-	}
-}
-
-// Construct handler for specific router
-func (p *RouterPrefix) composeHandlers(handlers []HandlerFunc) Handle {
-	return func(rw http.ResponseWriter, req *http.Request, ps Params) {
-		context := NewContext(p, rw, req)
-		context.handlers = handlers
-		context.Params = ps
-
-		context.Next()
 	}
 }
 
