@@ -1,0 +1,15 @@
+language: go
+
+matrix:
+  include:
+    - go: 1.6.x
+    - go: 1.7.x
+    - go: 1.8.x
+    - go: tip
+  allow_failures:
+    - go: tip
+
+script:
+  - go get -t -v ./...
+  - go vet $(go list ./... | grep -v /vendor/)
+  - go test -v -race ./...
