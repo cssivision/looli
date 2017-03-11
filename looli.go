@@ -6,9 +6,6 @@ import (
 
 type (
 	Engine struct {
-		// A Server defines parameters for running an HTTP server. The zero value for Server is a valid configuration.
-		Server *http.Server
-
 		// router with basePath
 		RouterPrefix
 
@@ -28,7 +25,6 @@ type Handler interface {
 
 func New() *Engine {
 	engine := &Engine{
-		Server:       &http.Server{},
 		RouterPrefix: RouterPrefix{},
 		router:       NewRouter(),
 	}
