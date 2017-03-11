@@ -586,8 +586,8 @@ func TestString(t *testing.T) {
 
 func TestJSON(t *testing.T) {
 	type Info struct {
-		Name string `json: "name"`
-		Age  int    `json: "age"`
+		Name string `json:"name"`
+		Age  int    `json:"age"`
 	}
 
 	statusCode := 404
@@ -605,45 +605,66 @@ func TestJSON(t *testing.T) {
 
 	serverURL := server.URL
 	resp, err := http.Get(serverURL + "/a/b")
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, statusCode, resp.StatusCode)
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	data := new(Info)
-	json.Unmarshal(bodyBytes, data)
+	err = json.Unmarshal(bodyBytes, data)
+	assert.Nil(t, err)
 	assert.Equal(t, "cssivision", data.Name)
 	assert.Equal(t, 21, data.Age)
 }
 
 func TestHTML(t *testing.T) {
-	statusCode := 404
-	router := New()
-	router.LoadHTMLGlob("test/templates/*")
-	router.Get("/index.html", func(c *Context) {
-		c.Status(statusCode)
-		c.HTML("index.tmpl", JSON{
-			"title": "Posts",
+	t.Run("normal render", func(t *testing.T) {
+		statusCode := 404
+		router := New()
+		router.LoadHTMLGlob("test/templates/*")
+		router.Get("/index.html", func(c *Context) {
+			c.Status(statusCode)
+			c.HTML("index.tmpl", JSON{
+				"title": "Posts",
+			})
 		})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+
+		serverURL := server.URL
+		resp, err := http.Get(serverURL + "/index.html")
+		assert.Nil(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, statusCode, resp.StatusCode)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Nil(t, err)
+		assert.True(t, strings.Contains(string(bodyBytes), "Posts"))
 	})
 
-	server := httptest.NewServer(router)
-	defer server.Close()
+	t.Run("render panic", func(t *testing.T) {
+		statusCode := 404
+		router := New()
+		router.LoadHTMLGlob("test/templates/*")
+		router.Get("/index.html", func(c *Context) {
+			c.Status(statusCode)
+			assert.Panics(t, func() {
+				c.HTML("index.tmp", JSON{
+					"title": "Posts",
+				})
+			})
+		})
 
-	serverURL := server.URL
-	resp, err := http.Get(serverURL + "/index.html")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
-	assert.Equal(t, statusCode, resp.StatusCode)
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.True(t, strings.Contains(string(bodyBytes), "Posts"))
+		server := httptest.NewServer(router)
+		defer server.Close()
+
+		serverURL := server.URL
+		resp, err := http.Get(serverURL + "/index.html")
+		assert.Nil(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, statusCode, resp.StatusCode)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Nil(t, err)
+		assert.False(t, strings.Contains(string(bodyBytes), "Posts"))
+	})
 }
