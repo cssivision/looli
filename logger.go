@@ -24,13 +24,15 @@ func LoggerWithWriter(out io.Writer) HandlerFunc {
 		latency := end.Sub(start)
 		clientIP := c.ClientIP()
 		statusCode := c.statusCode
+		proto := c.Request.Proto
 
-		fmt.Fprintf(out, "[looli] %v | %3d | %11v | %s | %-7s %s\n",
+		fmt.Fprintf(out, "[looli] %v | %3d | %11v | %s | %-4s %-8s %s\n",
 			end.Format("2006/01/01 - 15:04:05"),
 			statusCode,
 			latency,
 			clientIP,
 			method,
+			proto,
 			path,
 		)
 	}

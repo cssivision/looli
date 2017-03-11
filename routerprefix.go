@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	default404Body = "404 page not found"
-	default405Body = "405 method not allowed"
+	default404Body = "404 page not found\n"
+	default405Body = "405 method not allowed\n"
 )
 
 // RouterPrefix is used internally to configure router, a RouterPrefix is associated with a basePath
