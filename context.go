@@ -278,14 +278,20 @@ func (c *Context) Error(err error) {
 
 // String write format string to response
 func (c *Context) String(format string, values ...interface{}) {
-	renderString(c.ResponseWriter, format, values...)
+	if err := renderString(c.ResponseWriter, format, values...); err != nil {
+		panic(err)
+	}
 }
 
 // JSON write obj to response
 func (c *Context) JSON(data interface{}) {
-	renderJSON(c.ResponseWriter, data)
+	if err := renderJSON(c.ResponseWriter, data); err != nil {
+		panic(err)
+	}
 }
 
 func (c *Context) HTML(name string, data interface{}) {
-	renderHTML(c.ResponseWriter, c.template, name, data)
+	if err := renderHTML(c.ResponseWriter, c.template, name, data); err != nil {
+		panic(err)
+	}
 }
