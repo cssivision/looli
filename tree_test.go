@@ -61,7 +61,7 @@ func TestInsert(t *testing.T) {
 		matched, ps, _ = tree.find("/a/name/c")
 		assert.Equal(t, n, matched, "same pattern, should return same tree node")
 		assert.Equal(t, n.name, "", fmt.Sprintf("got params name: %s, expected %s", matched.name, "b"))
-		assert.Equal(t, ps["b"], "name", fmt.Sprintf("name", "got params b: %s, expected %s", ps["b"], "name"))
+		assert.Equal(t, ps["b"], "name", fmt.Sprintf("got params b: %s, expected %s", ps["b"], "name"))
 
 		n = tree.insert("/:b/:c")
 		assert.Equal(t, n, tree.insert("/:b/:c"), "same pattern, should return same tree node")
