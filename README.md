@@ -1,5 +1,4 @@
 # Introduction
-========
 [![Build Status](https://api.travis-ci.org/cssivision/looli.png?branch=master)](https://travis-ci.org/cssivision/looli)
 
 
