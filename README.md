@@ -504,7 +504,7 @@ func main() {
 
     v1 := router.Prefix("/v1")
 
-    // logger middleware only work for /v1 prefix router
+    // recover middleware only work for /v1 prefix router
     v1.Use(looli.Recover())
     v1.Get("/a", func(c *looli.Context) {
         panic("error!")
