@@ -6,6 +6,7 @@ matrix:
     - go: 1.7.x
     - go: 1.8.x
     - go: tip
+    - master
   allow_failures:
     - go: tip
 
