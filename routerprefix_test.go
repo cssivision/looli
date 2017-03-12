@@ -54,9 +54,7 @@ func handlePostPutMethod(method string, t *testing.T) {
 	router := New()
 	router.Handle(method, "/a/b", func(c *Context) {
 		requestData, err := ioutil.ReadAll(c.Request.Body)
-		if err != nil {
-			t.Error(err)
-		}
+		assert.Nil(t, err)
 
 		assert.Equal(t, requestData, requestBody)
 		c.Status(statusCode)
@@ -64,21 +62,41 @@ func handlePostPutMethod(method string, t *testing.T) {
 	})
 
 	server := httptest.NewServer(router)
-	serverURL := server.URL
 	defer server.Close()
+	serverURL := server.URL
 
 	getReq, err := http.NewRequest(method, serverURL+"/a/b", bytes.NewReader(requestBody))
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	getReq.Header.Set("Content-Type", "text/plain")
 	resp, err := http.DefaultClient.Do(getReq)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	assert.Equal(t, statusCode, resp.StatusCode)
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, string(bodyBytes), serverResponse)
+}
+
+func TestAny(t *testing.T) {
+	statusCode := 500
+	router := New()
+	router.Any("/a/b", func(c *Context) {
+		c.Status(statusCode)
+	})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+	serverURL := server.URL
+
+	methods := []string{http.MethodGet, http.MethodHead, http.MethodPost, http.MethodPut,
+		http.MethodDelete, http.MethodOptions, http.MethodPatch, http.MethodTrace, http.MethodConnect}
+
+	for _, method := range methods {
+		getReq, err := http.NewRequest(method, serverURL+"/a/b", nil)
+		assert.Nil(t, err)
+		resp, err := http.DefaultClient.Do(getReq)
+		assert.Nil(t, err)
+		assert.Equal(t, statusCode, resp.StatusCode)
+		resp.Body.Close()
+	}
 }
 
 func handleMethod(method string, t *testing.T) {
@@ -107,123 +125,84 @@ func handleMethod(method string, t *testing.T) {
 	assert.Equal(t, string(bodyBytes), serverResponse)
 }
 
-func TestStaticFile(t *testing.T) {
+func TestHandle(t *testing.T) {
 	router := New()
-	filePath := "./test/index.html"
-	router.StaticFile("/a/b", filePath)
+	assert.Panics(t, func() {
+		router.Handle(http.MethodGet, "/a/b")
+	})
+}
 
-	server := httptest.NewServer(router)
-	defer server.Close()
-	serverURL := server.URL
-	resp, err := http.Get(serverURL + "/a/b")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
+func TestStaticFile(t *testing.T) {
+	t.Run("without parameters", func(t *testing.T) {
+		router := New()
+		filePath := "./test/index.html"
+		router.StaticFile("/a/b", filePath)
 
-	sourceFile, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
+		server := httptest.NewServer(router)
+		defer server.Close()
+		serverURL := server.URL
+		resp, err := http.Get(serverURL + "/a/b")
+		assert.Nil(t, err)
+		defer resp.Body.Close()
 
-	assert.Equal(t, bodyBytes, sourceFile)
+		sourceFile, err := ioutil.ReadFile(filePath)
+		assert.Nil(t, err)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Nil(t, err)
+		assert.Equal(t, bodyBytes, sourceFile)
+	})
+
+	t.Run("with parameters", func(t *testing.T) {
+		router := New()
+		filePath := "./test/index.html"
+		assert.Panics(t, func() {
+			router.StaticFile("/:a", filePath)
+		})
+		assert.Panics(t, func() {
+			router.StaticFile("/*a", filePath)
+		})
+	})
 }
 
 func TestStatic(t *testing.T) {
-	router := New()
-	dirPath := "./test/"
-	fileName := "index.html"
-	router.Static("/a/b", dirPath)
+	t.Run("without parameters", func(t *testing.T) {
+		router := New()
+		dirPath := "./test/"
+		fileName := "index.html"
+		router.Static("/a/b", dirPath)
 
-	server := httptest.NewServer(router)
-	defer server.Close()
-	serverURL := server.URL
-	resp, err := http.Get(serverURL + "/a/b/" + fileName)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
+		server := httptest.NewServer(router)
+		defer server.Close()
+		serverURL := server.URL
+		resp, err := http.Get(serverURL + "/a/b/" + fileName)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
 
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	sourceFile, err := ioutil.ReadFile(dirPath + fileName)
-	if err != nil {
-		t.Fatal(err)
-	}
+		sourceFile, err := ioutil.ReadFile(dirPath + fileName)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	assert.Equal(t, sourceFile, bodyBytes)
-}
-
-func TestNoRoutePrefix(t *testing.T) {
-	router := New()
-	serverResponse := "server response"
-	statusCode := 404
-	router.Use(func(c *Context) {
-		c.SetHeader("fake-header", "fake")
+		assert.Equal(t, sourceFile, bodyBytes)
 	})
 
-	router.NoRoute(func(c *Context) {
-		c.Status(statusCode)
-		c.String(serverResponse)
+	t.Run("with parameters", func(t *testing.T) {
+		router := New()
+		filePath := "./test/index.html"
+		assert.Panics(t, func() {
+			router.Static("/:a", filePath)
+		})
+		assert.Panics(t, func() {
+			router.Static("/*a", filePath)
+		})
 	})
-	router.Get("/a/b", func(c *Context) {})
-	server := httptest.NewServer(router)
-	defer server.Close()
-
-	serverURL := server.URL
-	resp, err := http.Get(serverURL + "/a")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
-	assert.Equal(t, statusCode, resp.StatusCode)
-	assert.Equal(t, "fake", resp.Header.Get("fake-header"))
-
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, serverResponse, string(bodyBytes))
-}
-
-func TestNoMethod(t *testing.T) {
-	router := New()
-	serverResponse := "server response"
-	statusCode := 404
-
-	router.Use(func(c *Context) {
-		c.SetHeader("fake-header", "fake")
-	})
-
-	router.NoMethod(func(c *Context) {
-		c.Status(statusCode)
-		c.String(serverResponse)
-	})
-
-	server := httptest.NewServer(router)
-	defer server.Close()
-
-	serverURL := server.URL
-	resp, err := http.Get(serverURL + "/a")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
-	assert.Equal(t, statusCode, resp.StatusCode)
-	assert.Equal(t, "fake", resp.Header.Get("fake-header"))
-
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, serverResponse, string(bodyBytes))
 }
 
 func TestPrefix(t *testing.T) {
@@ -423,46 +402,55 @@ func TestLoadHTMLFiles(t *testing.T) {
 }
 
 func TestUse(t *testing.T) {
-	statusCode := 404
-	serverResponse := "server response"
-	middleware1 := func(c *Context) {
-		assert.Equal(t, c.Header("fake-header"), "fake")
-		c.Next()
-		assert.Equal(t, c.ResponseWriter.Header().Get("after-request"), "after")
-	}
-	middleware2 := func(c *Context) {
-		c.SetHeader("response-fake-header", "fake")
-		c.Next()
-		c.String(serverResponse)
-	}
-	router := New()
-	router.Use(middleware1, middleware2)
-	router.Get("/a/b", func(c *Context) {
-		c.Status(statusCode)
-		c.SetHeader("after-request", "after")
+	t.Run("use middlewares", func(t *testing.T) {
+		statusCode := 404
+		serverResponse := "server response"
+		middleware1 := func(c *Context) {
+			assert.Equal(t, c.Header("fake-header"), "fake")
+			c.Next()
+			assert.Equal(t, c.ResponseWriter.Header().Get("after-request"), "after")
+		}
+		middleware2 := func(c *Context) {
+			c.SetHeader("response-fake-header", "fake")
+			c.Next()
+			c.String(serverResponse)
+		}
+		router := New()
+		router.Use(middleware1, middleware2)
+		router.Get("/a/b", func(c *Context) {
+			c.Status(statusCode)
+			c.SetHeader("after-request", "after")
+		})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+		serverURL := server.URL
+
+		getReq, err := http.NewRequest(http.MethodGet, serverURL+"/a/b", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		getReq.Header.Set("fake-header", "fake")
+		resp, err := http.DefaultClient.Do(getReq)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		assert.Equal(t, statusCode, resp.StatusCode)
+		assert.Equal(t, resp.Header.Get("response-fake-header"), "fake")
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, serverResponse, string(bodyBytes))
 	})
 
-	server := httptest.NewServer(router)
-	defer server.Close()
-	serverURL := server.URL
-
-	getReq, err := http.NewRequest(http.MethodGet, serverURL+"/a/b", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	getReq.Header.Set("fake-header", "fake")
-	resp, err := http.DefaultClient.Do(getReq)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
-	assert.Equal(t, statusCode, resp.StatusCode)
-	assert.Equal(t, resp.Header.Get("response-fake-header"), "fake")
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, serverResponse, string(bodyBytes))
+	t.Run("use func without middleware", func(t *testing.T) {
+		router := New()
+		assert.Panics(t, func() {
+			router.Use()
+		})
+	})
 }
 
 type testHandler struct {

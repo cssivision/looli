@@ -525,6 +525,69 @@ func TestParam(t *testing.T) {
 	resp.Body.Close()
 }
 
+func TestClientIP(t *testing.T) {
+	t.Run("X-Real-Ip", func(t *testing.T) {
+		statusCode := 404
+		serverResponse := "server response"
+		realIP := "looli.xyz"
+		router := New()
+		router.ForwardedByClientIP = true
+
+		router.Get("/a", func(c *Context) {
+			assert.Equal(t, realIP, c.ClientIP())
+			c.Status(statusCode)
+			c.String(serverResponse)
+		})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+
+		serverURL := server.URL
+		getReq, err := http.NewRequest(http.MethodGet, serverURL+"/a", nil)
+		assert.Nil(t, err)
+		getReq.Header.Set("X-Real-Ip", realIP)
+		resp, err := http.DefaultClient.Do(getReq)
+		assert.Nil(t, err)
+		defer resp.Body.Close()
+
+		assert.Equal(t, statusCode, resp.StatusCode)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Nil(t, err)
+		assert.Equal(t, serverResponse, string(bodyBytes))
+	})
+
+	t.Run("X-Forwarded-For", func(t *testing.T) {
+		statusCode := 404
+		serverResponse := "server response"
+		clientIP := "looli.xyz"
+		router := New()
+		router.ForwardedByClientIP = true
+
+		router.Get("/a", func(c *Context) {
+			assert.Equal(t, clientIP, c.ClientIP())
+			assert.Empty(t, c.Header("X-Real-Ip"))
+			c.Status(statusCode)
+			c.String(serverResponse)
+		})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+
+		serverURL := server.URL
+		getReq, err := http.NewRequest(http.MethodGet, serverURL+"/a", nil)
+		assert.Nil(t, err)
+		getReq.Header.Set("X-Forwarded-For", clientIP)
+		resp, err := http.DefaultClient.Do(getReq)
+		assert.Nil(t, err)
+		defer resp.Body.Close()
+
+		assert.Equal(t, statusCode, resp.StatusCode)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Nil(t, err)
+		assert.Equal(t, serverResponse, string(bodyBytes))
+	})
+}
+
 func TestContentType(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"

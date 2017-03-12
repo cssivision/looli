@@ -19,4 +19,4 @@ script:
   - go test -v -race ./...
   - go test -coverprofile=looli.coverprofile
   - gover
-  - goveralls -coverprofile=gover.coverprofile -service=travis-ci
+  - goveralls -coverprofile=looli.coverprofile -service=travis-ci
