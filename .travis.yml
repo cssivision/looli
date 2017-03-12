@@ -22,4 +22,4 @@ script:
   - go test -coverprofile=csrf.coverprofile ./csrf
   - go test -coverprofile=session.coverprofile ./session
   - gover
-  - goveralls -coverprofile=looli.coverprofile -service=travis-ci
+  - goveralls -coverprofile=gover.coverprofile -service=travis-ci
