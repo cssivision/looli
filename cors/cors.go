@@ -1,4 +1,4 @@
-package looli
+package cors
 
 import (
 	"fmt"
