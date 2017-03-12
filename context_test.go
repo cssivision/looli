@@ -559,12 +559,12 @@ func TestClientIP(t *testing.T) {
 	t.Run("X-Forwarded-For", func(t *testing.T) {
 		statusCode := 404
 		serverResponse := "server response"
-		clientIP := "looli.xyz"
+		clientIP := "looli.xyz, looli.com"
 		router := New()
 		router.ForwardedByClientIP = true
 
 		router.Get("/a", func(c *Context) {
-			assert.Equal(t, clientIP, c.ClientIP())
+			assert.Equal(t, "looli.xyz", c.ClientIP())
 			assert.Empty(t, c.Header("X-Real-Ip"))
 			c.Status(statusCode)
 			c.String(serverResponse)

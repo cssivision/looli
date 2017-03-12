@@ -285,20 +285,38 @@ func TestBindMultiPart(t *testing.T) {
 
 	serverURL := server.URL
 	getReq, err := http.NewRequest(http.MethodPost, serverURL, body)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	getReq.Header.Set("Content-Type", MIMEMultipartPOSTForm+"; boundary="+boundary)
 	resp, err := http.DefaultClient.Do(getReq)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	defer resp.Body.Close()
 
 	assert.Equal(t, statusCode, resp.StatusCode)
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	assert.Equal(t, serverResponse, string(bodyBytes))
+}
+
+func TestSetIntField(t *testing.T) {
+
+}
+
+func TestSetUintField(t *testing.T) {
+
+}
+
+func TestSetBoolField(t *testing.T) {
+
+}
+
+func TestFloatField(t *testing.T) {
+
+}
+
+func TestSetWithProperType(t *testing.T) {
+
+}
+
+func TestMapForm(t *testing.T) {
+
 }
