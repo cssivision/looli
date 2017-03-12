@@ -1,5 +1,5 @@
 # looli
-[![Build Status](https://api.travis-ci.org/cssivision/looli.svg?branch=master)](https://travis-ci.org/cssivision/looli)
+[![Build Status](https://api.travis-ci.org/cssivision/looli.svg?branch=master)](https://travis-ci.org/cssivision/looli)[![Coverage Status](https://coveralls.io/repos/github/cssivision/looli/badge.svg?branch=master)](https://coveralls.io/github/cssivision/looli?branch=master)
 
 
 looli is a minimalist web framework for go.
