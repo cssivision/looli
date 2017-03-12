@@ -2,6 +2,7 @@ package looli
 
 import (
 	"fmt"
+	"github.com/cssivision/looli"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
@@ -14,10 +15,10 @@ import (
 func TestEmptyHost(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"
-	router := New()
+	router := looli.New()
 	router.Use(Cors(CorsOption{}))
 
-	router.Get("/a", func(c *Context) {
+	router.Get("/a", func(c *looli.Context) {
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})
@@ -51,10 +52,10 @@ func TestWithoutOptions(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"
 	origin := "looli.xyz"
-	router := New()
+	router := looli.New()
 	router.Use(Cors(CorsOption{}))
 
-	router.Get("/a", func(c *Context) {
+	router.Get("/a", func(c *looli.Context) {
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})
@@ -88,12 +89,12 @@ func TestAllOrigins(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"
 	origin := "looli.xyz"
-	router := New()
+	router := looli.New()
 	router.Use(Cors(CorsOption{
 		AllowOrigins: []string{"*"},
 	}))
 
-	router.Get("/a", func(c *Context) {
+	router.Get("/a", func(c *looli.Context) {
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})
@@ -128,12 +129,12 @@ func TestAllowedOrigins(t *testing.T) {
 	serverResponse := "server response"
 	origin := "looli.xyz"
 	notAllowedOrigin := "looli.com"
-	router := New()
+	router := looli.New()
 	router.Use(Cors(CorsOption{
 		AllowOrigins: []string{origin},
 	}))
 
-	router.Get("/a", func(c *Context) {
+	router.Get("/a", func(c *looli.Context) {
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})
@@ -190,14 +191,14 @@ func TestAllowOriginsFunc(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"
 	origin := "looli.xyz"
-	router := New()
+	router := looli.New()
 	router.Use(Cors(CorsOption{
 		AllowOriginsFunc: func(origin string) bool {
 			return strings.Contains(origin, "looli")
 		},
 	}))
 
-	router.Get("/a", func(c *Context) {
+	router.Get("/a", func(c *looli.Context) {
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})
@@ -254,13 +255,13 @@ func TestAllowMethods(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"
 	origin := "looli.xyz"
-	router := New()
+	router := looli.New()
 	allowedMethods := []string{http.MethodGet, http.MethodPut}
 	router.Use(Cors(CorsOption{
 		AllowMethods: allowedMethods,
 	}))
 
-	router.Get("/a", func(c *Context) {
+	router.Get("/a", func(c *looli.Context) {
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})
@@ -320,12 +321,12 @@ func TestAllowCredentials(t *testing.T) {
 		statusCode := 404
 		serverResponse := "server response"
 		origin := "looli.xyz"
-		router := New()
+		router := looli.New()
 		router.Use(Cors(CorsOption{
 			AllowCredentials: true,
 		}))
 
-		router.Get("/a", func(c *Context) {
+		router.Get("/a", func(c *looli.Context) {
 			c.Status(statusCode)
 			c.String(serverResponse)
 		})
@@ -359,12 +360,12 @@ func TestAllowCredentials(t *testing.T) {
 		statusCode := 404
 		serverResponse := "server response"
 		origin := "looli.xyz"
-		router := New()
+		router := looli.New()
 		router.Use(Cors(CorsOption{
 			AllowCredentials: true,
 		}))
 
-		router.Get("/a", func(c *Context) {
+		router.Get("/a", func(c *looli.Context) {
 			c.Status(statusCode)
 			c.String(serverResponse)
 		})
@@ -424,12 +425,12 @@ func TestExposeHeaders(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"
 	origin := "looli.xyz"
-	router := New()
+	router := looli.New()
 	router.Use(Cors(CorsOption{
 		ExposeHeaders: []string{"X-My-Custom-Header", "X-Another-Custom-Header"},
 	}))
 
-	router.Get("/a", func(c *Context) {
+	router.Get("/a", func(c *looli.Context) {
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})
@@ -463,12 +464,12 @@ func TestMaxAge(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"
 	origin := "looli.xyz"
-	router := New()
+	router := looli.New()
 	router.Use(Cors(CorsOption{
 		MaxAge: time.Second * 10,
 	}))
 
-	router.Get("/a", func(c *Context) {
+	router.Get("/a", func(c *looli.Context) {
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})
@@ -527,12 +528,12 @@ func TestAllowHeaders(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"
 	origin := "looli.xyz"
-	router := New()
+	router := looli.New()
 	router.Use(Cors(CorsOption{
 		AllowHeaders: []string{"fake-header1", "fake-header2", "fake-header3"},
 	}))
 
-	router.Get("/a", func(c *Context) {
+	router.Get("/a", func(c *looli.Context) {
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})
@@ -591,10 +592,10 @@ func TestRequestMethodEmpty(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"
 	origin := "looli.xyz"
-	router := New()
+	router := looli.New()
 	router.Use(Cors(CorsOption{}))
 
-	router.Get("/a", func(c *Context) {
+	router.Get("/a", func(c *looli.Context) {
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})

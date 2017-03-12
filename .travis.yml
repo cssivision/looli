@@ -18,5 +18,8 @@ script:
   - go vet $(go list ./... | grep -v /vendor/)
   - go test -v -race ./...
   - go test -coverprofile=looli.coverprofile
+  - go test -coverprofile=cors.coverprofile ./cors
+  - go test -coverprofile=csrf.coverprofile ./csrf
+  - go test -coverprofile=session.coverprofile ./session
   - gover
   - goveralls -coverprofile=looli.coverprofile -service=travis-ci

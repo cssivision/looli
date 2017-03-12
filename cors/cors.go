@@ -2,6 +2,7 @@ package looli
 
 import (
 	"fmt"
+	"github.com/cssivision/looli"
 	"net/http"
 	"strconv"
 	"strings"
@@ -55,7 +56,7 @@ type CorsOption struct {
 	MaxAge time.Duration
 }
 
-func Cors(option CorsOption) HandlerFunc {
+func Cors(option CorsOption) looli.HandlerFunc {
 	if option.AllowOrigins == nil {
 		option.AllowOrigins = defaultAllowOrigins
 	}
@@ -77,7 +78,7 @@ func Cors(option CorsOption) HandlerFunc {
 		}
 	}
 
-	return func(c *Context) {
+	return func(c *looli.Context) {
 		origin := c.Header("Origin")
 		if origin == "" {
 			return
