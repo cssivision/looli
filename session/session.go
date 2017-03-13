@@ -39,8 +39,8 @@ func NewSession(name string, store Store) (session *Session) {
 	return
 }
 
-func (session *Session) Save(rw http.ResponseWriter, req *http.Request) {
-	session.store.Save(rw, req, session)
+func (session *Session) Save(rw http.ResponseWriter, req *http.Request) error {
+	return session.store.Save(rw, req, session)
 }
 
 func NewCookie(name, value string, options *Options) *http.Cookie {
