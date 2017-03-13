@@ -5,9 +5,11 @@ import (
 	"time"
 )
 
+type Values map[interface{}]interface{}
+
 type Session struct {
 	Name    string
-	Values  map[interface{}]interface{}
+	Values  Values
 	Id      string
 	store   Store
 	Options *Options
@@ -27,9 +29,8 @@ var defaultOptions = &Options{
 	HttpOnly: true,
 }
 
-func NewSession(sid, name string, store Store) (session *Session) {
+func NewSession(name string, store Store) (session *Session) {
 	session = &Session{
-		Id:     sid,
 		Name:   name,
 		Values: make(map[interface{}]interface{}),
 		store:  store,
