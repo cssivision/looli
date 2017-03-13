@@ -16,7 +16,7 @@ func TestEmptyHost(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"
 	router := looli.New()
-	router.Use(Cors(CorsOption{}))
+	router.Use(Cors(Options{}))
 
 	router.Get("/a", func(c *looli.Context) {
 		c.Status(statusCode)
@@ -53,7 +53,7 @@ func TestWithoutOptions(t *testing.T) {
 	serverResponse := "server response"
 	origin := "looli.xyz"
 	router := looli.New()
-	router.Use(Cors(CorsOption{}))
+	router.Use(Cors(Options{}))
 
 	router.Get("/a", func(c *looli.Context) {
 		c.Status(statusCode)
@@ -90,7 +90,7 @@ func TestAllOrigins(t *testing.T) {
 	serverResponse := "server response"
 	origin := "looli.xyz"
 	router := looli.New()
-	router.Use(Cors(CorsOption{
+	router.Use(Cors(Options{
 		AllowOrigins: []string{"*"},
 	}))
 
@@ -130,7 +130,7 @@ func TestAllowedOrigins(t *testing.T) {
 	origin := "looli.xyz"
 	notAllowedOrigin := "looli.com"
 	router := looli.New()
-	router.Use(Cors(CorsOption{
+	router.Use(Cors(Options{
 		AllowOrigins: []string{origin},
 	}))
 
@@ -192,7 +192,7 @@ func TestAllowOriginsFunc(t *testing.T) {
 	serverResponse := "server response"
 	origin := "looli.xyz"
 	router := looli.New()
-	router.Use(Cors(CorsOption{
+	router.Use(Cors(Options{
 		AllowOriginsFunc: func(origin string) bool {
 			return strings.Contains(origin, "looli")
 		},
@@ -257,7 +257,7 @@ func TestAllowMethods(t *testing.T) {
 	origin := "looli.xyz"
 	router := looli.New()
 	allowedMethods := []string{http.MethodGet, http.MethodPut}
-	router.Use(Cors(CorsOption{
+	router.Use(Cors(Options{
 		AllowMethods: allowedMethods,
 	}))
 
@@ -322,7 +322,7 @@ func TestAllowCredentials(t *testing.T) {
 		serverResponse := "server response"
 		origin := "looli.xyz"
 		router := looli.New()
-		router.Use(Cors(CorsOption{
+		router.Use(Cors(Options{
 			AllowCredentials: true,
 		}))
 
@@ -361,7 +361,7 @@ func TestAllowCredentials(t *testing.T) {
 		serverResponse := "server response"
 		origin := "looli.xyz"
 		router := looli.New()
-		router.Use(Cors(CorsOption{
+		router.Use(Cors(Options{
 			AllowCredentials: true,
 		}))
 
@@ -426,7 +426,7 @@ func TestExposeHeaders(t *testing.T) {
 	serverResponse := "server response"
 	origin := "looli.xyz"
 	router := looli.New()
-	router.Use(Cors(CorsOption{
+	router.Use(Cors(Options{
 		ExposeHeaders: []string{"X-My-Custom-Header", "X-Another-Custom-Header"},
 	}))
 
@@ -465,7 +465,7 @@ func TestMaxAge(t *testing.T) {
 	serverResponse := "server response"
 	origin := "looli.xyz"
 	router := looli.New()
-	router.Use(Cors(CorsOption{
+	router.Use(Cors(Options{
 		MaxAge: time.Second * 10,
 	}))
 
@@ -529,7 +529,7 @@ func TestAllowHeaders(t *testing.T) {
 	serverResponse := "server response"
 	origin := "looli.xyz"
 	router := looli.New()
-	router.Use(Cors(CorsOption{
+	router.Use(Cors(Options{
 		AllowHeaders: []string{"fake-header1", "fake-header2", "fake-header3"},
 	}))
 
@@ -593,7 +593,7 @@ func TestRequestMethodEmpty(t *testing.T) {
 	serverResponse := "server response"
 	origin := "looli.xyz"
 	router := looli.New()
-	router.Use(Cors(CorsOption{}))
+	router.Use(Cors(Options{}))
 
 	router.Get("/a", func(c *looli.Context) {
 		c.Status(statusCode)

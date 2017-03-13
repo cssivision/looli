@@ -21,7 +21,7 @@ var (
 	}
 )
 
-type CorsOption struct {
+type Options struct {
 	// AllowedOrigins is a list of origins a cross-domain request can be executed from
 	// If the special "*" value is present in the list, all origins will be allowed.
 	AllowOrigins []string
@@ -56,7 +56,7 @@ type CorsOption struct {
 	MaxAge time.Duration
 }
 
-func Cors(option CorsOption) looli.HandlerFunc {
+func Cors(option Options) looli.HandlerFunc {
 	if option.AllowOrigins == nil {
 		option.AllowOrigins = defaultAllowOrigins
 	}

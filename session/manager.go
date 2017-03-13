@@ -4,15 +4,13 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"net/http"
+	"net/url"
 	"sync"
 )
 
-var defaultSessionCookieName = "sess"
-
 type SessionManager struct {
-	CookieName string
-	Store      Store
-	mu         sync.Mutex
+	Store Store
+	mu    sync.Mutex
 }
 
 func (sm *SessionManager) sessionId() (string, error) {
@@ -24,25 +22,28 @@ func (sm *SessionManager) sessionId() (string, error) {
 	return hex.EncodeToString(b), nil
 }
 
-func (sm *SessionManager) Get(req *http.Request) (session *Session, err error) {
+func (sm *SessionManager) Get(req *http.Request, name string) (*Session, error) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
-	cookie, err := req.Cookie(sm.CookieName)
+
+	var session *Session
+	cookie, err := req.Cookie(name)
 	if err != nil || cookie.Value == "" {
-		_, err := sm.sessionId()
+		sid, err := sm.sessionId()
 		if err != nil {
 			return nil, err
 		}
+		session = sm.Store.New(sid, name)
 	} else {
-		// sm.Store.Get()
+		sid, _ := url.QueryUnescape(cookie.Value)
+		session = sm.Store.Get(sid, name)
 	}
-	return
+	return session, nil
 }
 
 func NewSessionManager() *SessionManager {
 	return &SessionManager{
-	// mu:         sync.Mutex{},
-	// CookieName: defaultSessionCookieName,
-	// Store:      NewMemoryStore(),
+		mu:    sync.Mutex{},
+		Store: NewMemoryStore(),
 	}
 }

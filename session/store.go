@@ -2,13 +2,14 @@ package session
 
 import (
 	"net/http"
+	"net/url"
 	"sync"
 )
 
 type Store interface {
-	New() *Session
-	Get(sessionID string) (*Session, error)
-	Save(http.ResponseWriter, *http.Request) error
+	New(string, string) *Session
+	Get(string, string) *Session
+	Save(http.ResponseWriter, *http.Request, *Session)
 }
 
 type CookieStore struct {
@@ -27,17 +28,32 @@ type RedisStore struct {
 }
 
 func NewMemoryStore() Store {
-	return &MemoryStore{}
+	return &MemoryStore{
+		mu:       sync.Mutex{},
+		sessions: make(map[string]*Session),
+	}
 }
 
-func (ms *MemoryStore) Get(sessionId string) (session *Session, err error) {
-	return
+func (store *MemoryStore) Get(sid, name string) *Session {
+	store.mu.Lock()
+	defer store.mu.Unlock()
+
+	session, ok := store.sessions[sid]
+	if !ok {
+		session = store.New(sid, name)
+		session.store = store
+	}
+
+	return session
 }
 
-func (ms *MemoryStore) New() (session *Session) {
-	return
+func (store *MemoryStore) New(sid, name string) *Session {
+	session := NewSession(sid, name, store)
+	store.sessions[sid] = session
+
+	return session
 }
 
-func (ms *MemoryStore) Save(rw http.ResponseWriter, req *http.Request) (err error) {
-	return
+func (store *MemoryStore) Save(rw http.ResponseWriter, req *http.Request, session *Session) {
+	http.SetCookie(rw, NewCookie(session.Name, url.QueryEscape(session.Id), session.Options))
 }
