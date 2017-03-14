@@ -98,6 +98,37 @@ func TestInsert(t *testing.T) {
 		assert.False(t, p.wildcard)
 		assert.Equal(t, p.parameterChild, n)
 	})
+
+	t.Run("test conflict with wildcard", func(t *testing.T) {
+		tree := NewRouter().tree
+		tree.insert("/a")
+		assert.Panics(t, func() {
+			tree.insert("/*name")
+		})
+	})
+
+	t.Run("test conflict with parameter", func(t *testing.T) {
+		tree := NewRouter().tree
+		tree.insert("/a")
+		assert.Panics(t, func() {
+			tree.insert("/:name")
+		})
+	})
+
+	t.Run("test conflict with existed pattern", func(t *testing.T) {
+		tree := NewRouter().tree
+		tree.insert("/:a")
+		assert.Panics(t, func() {
+			tree.insert("/name")
+		})
+	})
+
+	t.Run("test conflict after wildcard pattern", func(t *testing.T) {
+		tree := NewRouter().tree
+		assert.Panics(t, func() {
+			tree.insert("/*name/a")
+		})
+	})
 }
 
 func TestFind(t *testing.T) {
@@ -156,5 +187,20 @@ func TestFind(t *testing.T) {
 		matched, ps, _ = tree.find("/a/name/cssivision")
 		assert.Equal(t, matched, n, "same pattern, should return same tree node")
 		assert.Equal(t, ps["b"], "name/cssivision")
+	})
+
+	t.Run("test for trailing slash redirect", func(t *testing.T) {
+		tree := NewRouter().tree
+
+		tree.insert("/a/b")
+		tree.insert("/a/")
+		matched, _, tsr := tree.find("/a/b/")
+		assert.Nil(t, matched)
+		assert.True(t, tsr)
+
+		matched, _, tsr = tree.find("/a")
+		assert.Nil(t, matched)
+		assert.True(t, tsr)
+
 	})
 }
