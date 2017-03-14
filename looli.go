@@ -1,12 +1,13 @@
 package looli
 
 import (
+	"html/template"
 	"net/http"
 )
 
 type (
 	Engine struct {
-		// router with basePath
+		// router with basePath, default basePath = ""
 		RouterPrefix
 
 		// router used to match url
@@ -15,6 +16,9 @@ type (
 		// when set true, implements a best effort algorithm to return the real client IP, it parses
 		// X-Real-IP and X-Forwarded-For in order to work properly with reverse-proxies such us: nginx or haproxy.
 		ForwardedByClientIP bool
+
+		// template used to render HTML
+		Template *template.Template
 	}
 	HandlerFunc func(*Context)
 )
@@ -73,6 +77,16 @@ func (engine *Engine) NoMethod(handlers ...HandlerFunc) {
 	}
 
 	engine.router.NoMethod = handlers
+}
+
+func (engine *Engine) LoadHTMLGlob(pattern string) {
+	templ := template.Must(template.ParseGlob(pattern))
+	engine.Template = templ
+}
+
+func (engine *Engine) LoadHTMLFiles(files ...string) {
+	templ := template.Must(template.ParseFiles(files...))
+	engine.Template = templ
 }
 
 // set IgnoreCase value

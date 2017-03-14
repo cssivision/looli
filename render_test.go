@@ -86,28 +86,52 @@ func TestRenderJSON(t *testing.T) {
 }
 
 func TestRenderHTML(t *testing.T) {
-	router := New()
-	router.LoadHTMLGlob("test/templates/*")
-	router.Get("/", func(c *Context) {
-		renderHTML(c.ResponseWriter, c.template, "index.tmpl", JSON{
-			"title": "Posts",
+	t.Run("render with name", func(t *testing.T) {
+		router := New()
+		router.LoadHTMLGlob("test/templates/*")
+		router.Get("/", func(c *Context) {
+			err := renderHTML(c.ResponseWriter, c.template, "index.tmpl", JSON{
+				"title": "Posts",
+			})
+			assert.Nil(t, err)
 		})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+
+		serverURL := server.URL
+		resp, err := http.Get(serverURL)
+		assert.Nil(t, err)
+		defer resp.Body.Close()
+
+		assert.Equal(t, htmlContentType[0], resp.Header.Get("Content-Type"))
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Nil(t, err)
+		assert.True(t, strings.Contains(string(bodyBytes), "Posts"))
 	})
 
-	server := httptest.NewServer(router)
-	defer server.Close()
+	t.Run("render without name", func(t *testing.T) {
+		router := New()
+		router.LoadHTMLGlob("test/templates/*")
+		router.Get("/", func(c *Context) {
+			err := renderHTML(c.ResponseWriter, c.template, "", JSON{
+				"title": "Posts",
+			})
+			assert.Nil(t, err)
+		})
 
-	serverURL := server.URL
-	resp, err := http.Get(serverURL)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
+		server := httptest.NewServer(router)
+		defer server.Close()
 
-	assert.Equal(t, htmlContentType[0], resp.Header.Get("Content-Type"))
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.True(t, strings.Contains(string(bodyBytes), "Posts"))
+		serverURL := server.URL
+		resp, err := http.Get(serverURL)
+		assert.Nil(t, err)
+		defer resp.Body.Close()
+
+		assert.Equal(t, htmlContentType[0], resp.Header.Get("Content-Type"))
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Nil(t, err)
+
+		assert.True(t, strings.Contains(string(bodyBytes), "Posts"))
+	})
 }

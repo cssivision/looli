@@ -1,7 +1,6 @@
 package looli
 
 import (
-	"html/template"
 	"net/http"
 	"path"
 	"strings"
@@ -18,7 +17,6 @@ type RouterPrefix struct {
 	basePath    string
 	router      *Router
 	Middlewares []HandlerFunc
-	template    *template.Template
 	engine      *Engine
 	allNoRoute  []HandlerFunc
 	allNoMethod []HandlerFunc
@@ -107,20 +105,6 @@ func (p *RouterPrefix) Handle(method, pattern string, handlers ...HandlerFunc) {
 	}
 
 	p.router.Handle(method, pattern, handlers)
-}
-
-func (p *RouterPrefix) LoadHTMLGlob(pattern string) {
-	templ := template.Must(template.ParseGlob(pattern))
-	p.SetHTMLTemplate(templ)
-}
-
-func (p *RouterPrefix) LoadHTMLFiles(files ...string) {
-	templ := template.Must(template.ParseFiles(files...))
-	p.SetHTMLTemplate(templ)
-}
-
-func (p *RouterPrefix) SetHTMLTemplate(templ *template.Template) {
-	p.template = templ
 }
 
 // StaticFile register router pattern and response file in path

@@ -55,7 +55,7 @@ func NewContext(p *RouterPrefix, rw http.ResponseWriter, req *http.Request) *Con
 		current:        -1,
 		Path:           req.URL.Path,
 		Method:         req.Method,
-		template:       p.template,
+		template:       p.engine.Template,
 		engine:         p.engine,
 		statusCode:     defaultStatusCode,
 	}
