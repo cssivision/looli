@@ -22,11 +22,9 @@ type (
 		Bind(*http.Request, interface{}) error
 	}
 
-	jsonBinding          struct{}
-	formBinding          struct{}
-	formPostBinding      struct{}
-	formMultipartBinding struct{}
-	xmlBinding           struct{}
+	jsonBinding struct{}
+	formBinding struct{}
+	xmlBinding  struct{}
 )
 
 func bindDefault(method, contentType string) Binding {
@@ -39,11 +37,7 @@ func bindDefault(method, contentType string) Binding {
 			binding = &jsonBinding{}
 		case MIMEXML, MIMEXML2:
 			binding = &xmlBinding{}
-		case MIMEPOSTForm:
-			binding = &formPostBinding{}
-		case MIMEMultipartPOSTForm:
-			binding = &formMultipartBinding{}
-		default:
+		default: // MIMEPOSTForm, MIMEMultipartPOSTForm
 			binding = &formBinding{}
 		}
 	}
@@ -64,37 +58,11 @@ func (*formBinding) Bind(req *http.Request, data interface{}) error {
 	}
 	req.ParseMultipartForm(1 << 32)
 
-	if err := mapForm(data, req.Form); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (*formPostBinding) Bind(req *http.Request, data interface{}) error {
-	if err := req.ParseForm(); err != nil {
-		return err
-	}
-	if err := mapForm(data, req.PostForm); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (*formMultipartBinding) Bind(req *http.Request, data interface{}) error {
-	if err := req.ParseMultipartForm(32 << 10); err != nil {
-		return err
-	}
-	if err := mapForm(data, req.MultipartForm.Value); err != nil {
-		return err
-	}
-	return nil
+	return mapForm(data, req.Form)
 }
 
 func (*xmlBinding) Bind(req *http.Request, data interface{}) error {
-	if err := xml.NewDecoder(req.Body).Decode(data); err != nil {
-		return err
-	}
-	return nil
+	return xml.NewDecoder(req.Body).Decode(data)
 }
 
 func mapForm(ptr interface{}, form map[string][]string) error {

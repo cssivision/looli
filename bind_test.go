@@ -263,15 +263,13 @@ func TestBindMultiPart(t *testing.T) {
 	must(mw.WriteField("age", "21"))
 	mw.Close()
 
-	statusCode := 200
+	statusCode := 404
 	serverResponse := "server response"
 	router := New()
 	router.Post("/", func(c *Context) {
 		form := new(Info)
 		err := c.Bind(form)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.Nil(t, err)
 
 		assert.Equal(t, "cssivision", form.Name)
 		assert.Equal(t, 21, form.Age)
@@ -297,26 +295,69 @@ func TestBindMultiPart(t *testing.T) {
 	assert.Equal(t, serverResponse, string(bodyBytes))
 }
 
-func TestSetIntField(t *testing.T) {
+func TestMutliDataType(t *testing.T) {
+	type Info struct {
+		Integer8   int8    `json:"integer8"`
+		Integer16  int16   `json:"integer16"`
+		Integer32  int32   `json:"integer32"`
+		Integer64  int64   `json:"integer64"`
+		Uinteger8  uint8   `json:"uinteger8"`
+		Uinteger16 uint16  `json:"uinteger16"`
+		Uinteger32 uint32  `json:"uinteger32"`
+		Uinteger64 uint64  `json:"uinteger64"`
+		Boolean    bool    `json:"boolean"`
+		Float32    float32 `json:"float32"`
+		Float64    float64 `json:"float64"`
+	}
 
-}
+	statusCode := 404
+	serverResponse := "server response"
+	router := New()
+	router.Post("/", func(c *Context) {
+		form := new(Info)
+		assert.Nil(t, c.Bind(form))
 
-func TestSetUintField(t *testing.T) {
+		assert.Equal(t, int8(7), form.Integer8)
+		assert.Equal(t, int16(7), form.Integer16)
+		assert.Equal(t, int32(7), form.Integer32)
+		assert.Equal(t, int64(7), form.Integer64)
+		assert.Equal(t, uint8(7), form.Uinteger8)
+		assert.Equal(t, uint16(7), form.Uinteger16)
+		assert.Equal(t, uint32(7), form.Uinteger32)
+		assert.Equal(t, uint64(7), form.Uinteger64)
+		assert.True(t, form.Boolean)
+		assert.Equal(t, float32(7.7), form.Float32)
+		assert.Equal(t, float64(7.7), form.Float64)
+		c.Status(statusCode)
+		c.String(serverResponse)
+	})
 
-}
+	server := httptest.NewServer(router)
+	defer server.Close()
 
-func TestSetBoolField(t *testing.T) {
+	serverURL := server.URL
 
-}
+	data := url.Values{}
+	data.Add("integer8", "7")
+	data.Add("integer16", "7")
+	data.Add("integer32", "7")
+	data.Add("integer64", "7")
+	data.Add("uinteger8", "7")
+	data.Add("uinteger16", "7")
+	data.Add("uinteger32", "7")
+	data.Add("uinteger64", "7")
+	data.Add("boolean", "true")
+	data.Add("float32", "7.7")
+	data.Add("float64", "7.7")
+	resp, err := http.Post(serverURL, MIMEPOSTForm, bytes.NewBufferString(data.Encode()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
 
-func TestFloatField(t *testing.T) {
-
-}
-
-func TestSetWithProperType(t *testing.T) {
-
-}
-
-func TestMapForm(t *testing.T) {
-
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, serverResponse, string(bodyBytes))
 }
