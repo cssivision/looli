@@ -168,6 +168,10 @@ func TestNoMethod(t *testing.T) {
 			c.SetHeader("fake-header", "fake")
 		})
 
+		assert.Panics(t, func() {
+			router.NoMethod()
+		})
+
 		router.NoMethod(func(c *Context) {
 			c.Status(statusCode)
 			c.String(serverResponse)
@@ -178,25 +182,34 @@ func TestNoMethod(t *testing.T) {
 
 		serverURL := server.URL
 		resp, err := http.Get(serverURL + "/a")
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.Nil(t, err)
 		defer resp.Body.Close()
+
 		assert.Equal(t, statusCode, resp.StatusCode)
 		assert.Equal(t, "fake", resp.Header.Get("fake-header"))
 
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.Nil(t, err)
 		assert.Equal(t, serverResponse, string(bodyBytes))
 	})
 
-	t.Run("no method handler should panic", func(t *testing.T) {
+	t.Run("default no method handler", func(t *testing.T) {
 		router := New()
-		assert.Panics(t, func() {
-			router.NoMethod()
-		})
+		router.router.NoMethod = nil
+		router.Get("/", func(c *Context) {})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+
+		serverURL := server.URL
+
+		resp, err := http.Post(serverURL, "", nil)
+		assert.Nil(t, err)
+		defer resp.Body.Close()
+
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Nil(t, err)
+		assert.Equal(t, default405Body, string(bodyBytes))
 	})
 }
 
@@ -209,34 +222,49 @@ func TestNoRoute(t *testing.T) {
 			c.SetHeader("fake-header", "fake")
 		})
 
+		assert.Panics(t, func() {
+			router.NoRoute()
+		})
+
 		router.NoRoute(func(c *Context) {
 			c.Status(statusCode)
 			c.String(serverResponse)
 		})
+
 		router.Get("/a/b", func(c *Context) {})
 		server := httptest.NewServer(router)
 		defer server.Close()
 
 		serverURL := server.URL
 		resp, err := http.Get(serverURL + "/a")
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.Nil(t, err)
 		defer resp.Body.Close()
+
 		assert.Equal(t, statusCode, resp.StatusCode)
 		assert.Equal(t, "fake", resp.Header.Get("fake-header"))
 
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.Nil(t, err)
 		assert.Equal(t, serverResponse, string(bodyBytes))
 	})
 
-	t.Run("no route handler should panic", func(t *testing.T) {
+	t.Run("default no route handler", func(t *testing.T) {
 		router := New()
-		assert.Panics(t, func() {
-			router.NoRoute()
-		})
+		router.router.NoRoute = nil
+		router.Get("/", func(c *Context) {})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+
+		serverURL := server.URL
+
+		resp, err := http.Get(serverURL + "/a")
+		assert.Nil(t, err)
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Nil(t, err)
+		assert.Equal(t, default404Body, string(bodyBytes))
 	})
 }

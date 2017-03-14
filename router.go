@@ -105,8 +105,6 @@ func (r *Router) handleRequest(c *Context) {
 			path := req.URL.Path
 			if len(path) > 1 && path[len(path)-1] == '/' {
 				pattern = path[:len(path)-1]
-			} else if len(path) == 1 {
-				// do nothing
 			} else {
 				pattern = path + "/"
 			}
@@ -133,6 +131,7 @@ func (r *Router) handleRequest(c *Context) {
 		c.Params = ps
 		c.Next()
 	} else {
-		http.NotFound(rw, req)
+		rw.WriteHeader(http.StatusNotFound)
+		rw.Write([]byte(default404Body))
 	}
 }
