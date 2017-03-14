@@ -22,3 +22,21 @@ func TestAddhandlers(t *testing.T) {
 		router.Handle(http.MethodGet, "/", []HandlerFunc{func(c *Context) {}})
 	})
 }
+
+func TestRouterHandle(t *testing.T) {
+	router := &Router{
+		TrailingSlashRedirect: true,
+		allowMethods:          make(map[string]bool),
+		IgnoreCase:            true,
+	}
+
+	assert.Panics(t, func() {
+		router.Handle(http.MethodGet, "", nil)
+	})
+
+	assert.Panics(t, func() {
+		router.Handle("/", "", nil)
+	})
+
+	router.Handle(http.MethodGet, "/a", nil)
+}
