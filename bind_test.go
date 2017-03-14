@@ -297,20 +297,27 @@ func TestBindMultiPart(t *testing.T) {
 
 func TestMutliDataType(t *testing.T) {
 	type Info struct {
-		Name       string
-		Array      []string `json:"array"`
-		Integer8   int8     `json:"integer8"`
-		Integer16  int16    `json:"integer16"`
-		Integer32  int32    `json:"integer32"`
-		Integer64  int64    `json:"integer64"`
-		Uinteger   uint     `json:"uinteger"`
-		Uinteger8  uint8    `json:"uinteger8"`
-		Uinteger16 uint16   `json:"uinteger16"`
-		Uinteger32 uint32   `json:"uinteger32"`
-		Uinteger64 uint64   `json:"uinteger64"`
-		Boolean    bool     `json:"boolean"`
-		Float32    float32  `json:"float32"`
-		Float64    float64  `json:"float64"`
+		Name          string
+		Array         []string `json:"array"`
+		Integer8      int8     `json:"integer8"`
+		EmptyInteger  int      `json:"emptyInteger"`
+		Integer16     int16    `json:"integer16"`
+		Integer32     int32    `json:"integer32"`
+		Integer64     int64    `json:"integer64"`
+		Uinteger      uint     `json:"uinteger"`
+		UemptyInteger uint     `json:"emptyUinteger"`
+		Uinteger8     uint8    `json:"uinteger8"`
+		Uinteger16    uint16   `json:"uinteger16"`
+		Uinteger32    uint32   `json:"uinteger32"`
+		Uinteger64    uint64   `json:"uinteger64"`
+		Boolean       bool     `json:"boolean"`
+		EmptyFloat    float32  `json:"emptyFloat"`
+		Float32       float32  `json:"float32"`
+		Float64       float64  `json:"float64"`
+		SubInfo       struct {
+			SubName string `json:"subname"`
+			SubAge  int    `json:"subage"`
+		}
 	}
 
 	statusCode := 404
@@ -324,11 +331,13 @@ func TestMutliDataType(t *testing.T) {
 		assert.Equal(t, "ssivision", form.Array[1])
 		assert.Equal(t, "sivision", form.Array[2])
 		assert.Equal(t, "cssivision", form.Name)
+		assert.Equal(t, 0, form.EmptyInteger)
 		assert.Equal(t, int8(7), form.Integer8)
 		assert.Equal(t, int16(7), form.Integer16)
 		assert.Equal(t, int32(7), form.Integer32)
 		assert.Equal(t, int64(7), form.Integer64)
 		assert.Equal(t, uint(7), form.Uinteger)
+		assert.Equal(t, uint(0), form.UemptyInteger)
 		assert.Equal(t, uint8(7), form.Uinteger8)
 		assert.Equal(t, uint16(7), form.Uinteger16)
 		assert.Equal(t, uint32(7), form.Uinteger32)
@@ -336,6 +345,9 @@ func TestMutliDataType(t *testing.T) {
 		assert.True(t, form.Boolean)
 		assert.Equal(t, float32(7.7), form.Float32)
 		assert.Equal(t, float64(7.7), form.Float64)
+		assert.Equal(t, float32(0.0), form.EmptyFloat)
+		assert.Equal(t, "sivision", form.SubInfo.SubName)
+		assert.Equal(t, 21, form.SubInfo.SubAge)
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})
@@ -350,18 +362,23 @@ func TestMutliDataType(t *testing.T) {
 	data.Add("array", "cssivision")
 	data.Add("array", "ssivision")
 	data.Add("array", "sivision")
+	data.Add("emptyInteger", "")
 	data.Add("integer8", "7")
 	data.Add("integer16", "7")
 	data.Add("integer32", "7")
 	data.Add("integer64", "7")
 	data.Add("uinteger", "7")
+	data.Add("emptyUinteger", "")
 	data.Add("uinteger8", "7")
 	data.Add("uinteger16", "7")
 	data.Add("uinteger32", "7")
 	data.Add("uinteger64", "7")
 	data.Add("boolean", "true")
 	data.Add("float32", "7.7")
+	data.Add("emptyFloat", "")
 	data.Add("float64", "7.7")
+	data.Add("subname", "sivision")
+	data.Add("subage", "21")
 	resp, err := http.Post(serverURL, MIMEPOSTForm, bytes.NewBufferString(data.Encode()))
 	if err != nil {
 		t.Fatal(err)

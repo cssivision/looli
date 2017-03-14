@@ -46,10 +46,7 @@ func bindDefault(method, contentType string) Binding {
 }
 
 func (*jsonBinding) Bind(req *http.Request, data interface{}) error {
-	if err := json.NewDecoder(req.Body).Decode(data); err != nil {
-		return err
-	}
-	return nil
+	return json.NewDecoder(req.Body).Decode(data)
 }
 
 func (*formBinding) Bind(req *http.Request, data interface{}) error {
@@ -87,8 +84,7 @@ func mapForm(ptr interface{}, form map[string][]string) error {
 			// this would not make sense for JSON parsing but it does for a form
 			// since data is flatten
 			if structFieldKind == reflect.Struct {
-				err := mapForm(structField.Addr().Interface(), form)
-				if err != nil {
+				if err := mapForm(structField.Addr().Interface(), form); err != nil {
 					return err
 				}
 				continue
