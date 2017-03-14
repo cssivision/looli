@@ -31,11 +31,11 @@ func TestRouterHandle(t *testing.T) {
 	}
 
 	assert.Panics(t, func() {
-		router.Handle(http.MethodGet, "", nil)
+		router.Handle(http.MethodGet, "a", nil)
 	})
 
 	assert.Panics(t, func() {
-		router.Handle("/", "", nil)
+		router.Handle("", http.MethodGet, nil)
 	})
 
 	router.Handle(http.MethodGet, "/a", nil)

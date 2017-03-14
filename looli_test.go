@@ -95,34 +95,67 @@ func TestSetIgnoreCase(t *testing.T) {
 }
 
 func TestSetTrailingSlashRedirect(t *testing.T) {
-	router := New()
-	serverResponse := "server response"
-	statusCode := 200
-	statusNotFound := 404
-	router.Get("/a/b", func(c *Context) {
-		c.Status(statusCode)
-		c.String(serverResponse)
+	t.Run("with slash", func(t *testing.T) {
+		router := New()
+		serverResponse := "server response"
+		statusCode := 200
+		statusNotFound := 404
+		router.Get("/a/b", func(c *Context) {
+			c.Status(statusCode)
+			c.String(serverResponse)
+		})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+		serverURL := server.URL
+		resp, err := http.Get(serverURL + "/a/b/")
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, resp.StatusCode, statusCode)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Equal(t, string(bodyBytes), serverResponse)
+		resp.Body.Close()
+
+		router.SetTrailingSlashRedirect(false)
+		resp, err = http.Get(serverURL + "/a/b/")
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, resp.StatusCode, statusNotFound)
+		resp.Body.Close()
 	})
 
-	server := httptest.NewServer(router)
-	defer server.Close()
-	serverURL := server.URL
-	resp, err := http.Get(serverURL + "/a/b/")
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, resp.StatusCode, statusCode)
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	assert.Equal(t, string(bodyBytes), serverResponse)
-	resp.Body.Close()
+	t.Run("without slash", func(t *testing.T) {
+		router := New()
+		serverResponse := "server response"
+		statusCode := 200
+		statusNotFound := 404
+		router.Get("/a/b/", func(c *Context) {
+			c.Status(statusCode)
+			c.String(serverResponse)
+		})
 
-	router.SetTrailingSlashRedirect(false)
-	resp, err = http.Get(serverURL + "/a/b/")
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, resp.StatusCode, statusNotFound)
-	resp.Body.Close()
+		server := httptest.NewServer(router)
+		defer server.Close()
+		serverURL := server.URL
+		resp, err := http.Get(serverURL + "/a/b")
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, resp.StatusCode, statusCode)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Equal(t, string(bodyBytes), serverResponse)
+		resp.Body.Close()
+
+		router.SetTrailingSlashRedirect(false)
+		resp, err = http.Get(serverURL + "/a/b")
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, resp.StatusCode, statusNotFound)
+		resp.Body.Close()
+	})
 }
 
 func TestNoMethod(t *testing.T) {
