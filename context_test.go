@@ -3,6 +3,7 @@ package looli
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"mime/multipart"
@@ -298,31 +299,53 @@ func TestHeader(t *testing.T) {
 }
 
 func TestSetHeader(t *testing.T) {
-	statusCode := 404
-	serverResponse := "server response"
-	router := New()
-	router.Get("/a/b", func(c *Context) {
-		c.SetHeader("fake-header", "fake")
-		c.Status(statusCode)
-		c.String(serverResponse)
+	t.Run("normal set", func(t *testing.T) {
+		statusCode := 404
+		serverResponse := "server response"
+		router := New()
+		router.Get("/a/b", func(c *Context) {
+			c.SetHeader("fake-header", "fake")
+			c.Status(statusCode)
+			c.String(serverResponse)
+		})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+
+		serverURL := server.URL
+		resp, err := http.Get(serverURL + "/a/b")
+		assert.Nil(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, resp.Header.Get("fake-header"), "fake")
+		assert.Equal(t, statusCode, resp.StatusCode)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Nil(t, err)
+		assert.Equal(t, serverResponse, string(bodyBytes))
 	})
 
-	server := httptest.NewServer(router)
-	defer server.Close()
+	t.Run("set header to empty", func(t *testing.T) {
+		statusCode := 404
+		serverResponse := "server response"
+		router := New()
+		router.Get("/a/b", func(c *Context) {
+			c.SetHeader("fake-header", "")
+			c.Status(statusCode)
+			c.String(serverResponse)
+		})
 
-	serverURL := server.URL
-	resp, err := http.Get(serverURL + "/a/b")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
-	assert.Equal(t, resp.Header.Get("fake-header"), "fake")
-	assert.Equal(t, statusCode, resp.StatusCode)
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, serverResponse, string(bodyBytes))
+		server := httptest.NewServer(router)
+		defer server.Close()
+
+		serverURL := server.URL
+		resp, err := http.Get(serverURL + "/a/b")
+		assert.Nil(t, err)
+		defer resp.Body.Close()
+		assert.Empty(t, resp.Header.Get("fake-header"))
+		assert.Equal(t, statusCode, resp.StatusCode)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Nil(t, err)
+		assert.Equal(t, serverResponse, string(bodyBytes))
+	})
 }
 
 func TestCookie(t *testing.T) {
@@ -331,10 +354,11 @@ func TestCookie(t *testing.T) {
 	router := New()
 	router.Get("/a/b", func(c *Context) {
 		val, err := c.Cookie("fake-cookie")
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.Nil(t, err)
 		assert.Equal(t, val, "fake")
+		val, err = c.Cookie("fake-cookie-not-exist")
+		assert.NotNil(t, err)
+		assert.Empty(t, val)
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})
@@ -477,6 +501,69 @@ func TestAbortWithStatus(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Empty(t, bodyBytes)
+}
+
+func TestError(t *testing.T) {
+	t.Run("errors.new", func(t *testing.T) {
+		statusCode := 404
+		serverResponse := "server response"
+		router := New()
+		router.Get("/a", func(c *Context) {
+			c.Error(errors.New("oh error!"))
+			assert.NotNil(t, c.Err)
+			assert.Equal(t, "oh error!", c.Err.Error())
+			assert.Equal(t, c.Err.Code, 0)
+			assert.Equal(t, c.Err.Meta, nil)
+
+			c.Status(statusCode)
+			c.String(serverResponse)
+		})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+
+		serverURL := server.URL
+		resp, err := http.Get(serverURL + "/a")
+		assert.Nil(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, statusCode, resp.StatusCode)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Nil(t, err)
+		assert.Equal(t, serverResponse, string(bodyBytes))
+	})
+
+	t.Run("builtin Error", func(t *testing.T) {
+		statusCode := 404
+		serverResponse := "server response"
+		router := New()
+		router.Get("/a", func(c *Context) {
+			c.Error(&Error{
+				Code: 501,
+				Err:  errors.New("oh error!"),
+				Meta: "cssivision",
+			})
+
+			assert.NotNil(t, c.Err)
+			assert.Equal(t, "oh error!", c.Err.Error())
+			assert.Equal(t, c.Err.Code, 501)
+			assert.Equal(t, c.Err.Meta, "cssivision")
+
+			c.Status(statusCode)
+			c.String(serverResponse)
+		})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+
+		serverURL := server.URL
+		resp, err := http.Get(serverURL + "/a")
+		assert.Nil(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, statusCode, resp.StatusCode)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		assert.Nil(t, err)
+		assert.Equal(t, serverResponse, string(bodyBytes))
+	})
 }
 
 func TestParam(t *testing.T) {
