@@ -297,17 +297,20 @@ func TestBindMultiPart(t *testing.T) {
 
 func TestMutliDataType(t *testing.T) {
 	type Info struct {
-		Integer8   int8    `json:"integer8"`
-		Integer16  int16   `json:"integer16"`
-		Integer32  int32   `json:"integer32"`
-		Integer64  int64   `json:"integer64"`
-		Uinteger8  uint8   `json:"uinteger8"`
-		Uinteger16 uint16  `json:"uinteger16"`
-		Uinteger32 uint32  `json:"uinteger32"`
-		Uinteger64 uint64  `json:"uinteger64"`
-		Boolean    bool    `json:"boolean"`
-		Float32    float32 `json:"float32"`
-		Float64    float64 `json:"float64"`
+		Name       string
+		Array      []string `json:"array"`
+		Integer8   int8     `json:"integer8"`
+		Integer16  int16    `json:"integer16"`
+		Integer32  int32    `json:"integer32"`
+		Integer64  int64    `json:"integer64"`
+		Uinteger   uint     `json:"uinteger"`
+		Uinteger8  uint8    `json:"uinteger8"`
+		Uinteger16 uint16   `json:"uinteger16"`
+		Uinteger32 uint32   `json:"uinteger32"`
+		Uinteger64 uint64   `json:"uinteger64"`
+		Boolean    bool     `json:"boolean"`
+		Float32    float32  `json:"float32"`
+		Float64    float64  `json:"float64"`
 	}
 
 	statusCode := 404
@@ -317,10 +320,15 @@ func TestMutliDataType(t *testing.T) {
 		form := new(Info)
 		assert.Nil(t, c.Bind(form))
 
+		assert.Equal(t, "cssivision", form.Array[0])
+		assert.Equal(t, "ssivision", form.Array[1])
+		assert.Equal(t, "sivision", form.Array[2])
+		assert.Equal(t, "cssivision", form.Name)
 		assert.Equal(t, int8(7), form.Integer8)
 		assert.Equal(t, int16(7), form.Integer16)
 		assert.Equal(t, int32(7), form.Integer32)
 		assert.Equal(t, int64(7), form.Integer64)
+		assert.Equal(t, uint(7), form.Uinteger)
 		assert.Equal(t, uint8(7), form.Uinteger8)
 		assert.Equal(t, uint16(7), form.Uinteger16)
 		assert.Equal(t, uint32(7), form.Uinteger32)
@@ -338,10 +346,15 @@ func TestMutliDataType(t *testing.T) {
 	serverURL := server.URL
 
 	data := url.Values{}
+	data.Add("Name", "cssivision")
+	data.Add("array", "cssivision")
+	data.Add("array", "ssivision")
+	data.Add("array", "sivision")
 	data.Add("integer8", "7")
 	data.Add("integer16", "7")
 	data.Add("integer32", "7")
 	data.Add("integer64", "7")
+	data.Add("uinteger", "7")
 	data.Add("uinteger8", "7")
 	data.Add("uinteger16", "7")
 	data.Add("uinteger32", "7")
