@@ -34,7 +34,7 @@ func TestCookieStoreGetSave(t *testing.T) {
 	t.Run("with cookie", func(t *testing.T) {
 		router := looli.New()
 		secret := "secret"
-		aesKey := ""
+		aesKey := "1111111111111111"
 		serverResponse := "sever response"
 		sessions := NewSessions(secret, aesKey)
 		router.Get("/", func(ctx *looli.Context) {
@@ -54,7 +54,7 @@ func TestCookieStoreGetSave(t *testing.T) {
 
 		req, err := http.NewRequest(http.MethodGet, serverURL, nil)
 		assert.Nil(t, err)
-		req.Header.Set("Cookie", "sess=cookie")
+		req.Header.Set("Cookie", "sess=MTQ4OTU2NzYzNHxxWGwzcW9jMVZkanRCOU1oYlZhZ0pUV2tfOG00dUR5RnhJc09ma0NxZHBidjJRRkVIRnZrUzhTVHhZbWVmWDlLanRGT1Y2WE9mQTRjSHByTnVOUGJHWlJhSVBjPXxZEkM6Gks2KhX7yWoskw7A4YV-nR0IbSCB87V-mrsUDg%3D%3D")
 		resp, err := http.DefaultClient.Do(req)
 		assert.Nil(t, err)
 		defer resp.Body.Close()

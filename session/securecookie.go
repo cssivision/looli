@@ -112,6 +112,7 @@ func DecodeCookie(hashKey, aesKey []byte, name string, value string, dst interfa
 	if err = deserialize(b, dst); err != nil {
 		return err
 	}
+	fmt.Println("--------------------")
 	return nil
 }
 
