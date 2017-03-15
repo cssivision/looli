@@ -1,6 +1,7 @@
 package session
 
 import (
+	"github.com/cssivision/looli"
 	"net/http"
 	"time"
 )
@@ -39,7 +40,8 @@ func NewSession(name string, store Store) (session *Session) {
 	return
 }
 
-func (session *Session) Save(rw http.ResponseWriter, req *http.Request) error {
+func (session *Session) Save(ctx *looli.Context) error {
+	rw, req := ctx.ResponseWriter, ctx.Request
 	return session.store.Save(rw, req, session)
 }
 

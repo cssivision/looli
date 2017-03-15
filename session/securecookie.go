@@ -2,6 +2,8 @@ package session
 
 import (
 	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/hmac"
 	"crypto/sha256"
 	"crypto/subtle"
@@ -26,7 +28,7 @@ var hashFunc = sha256.New
 // It is the client's responsibility to ensure that value, when encoded using
 // the current serialization/encryption settings on s and then base64-encoded,
 // is shorter than the maximum permissible length.
-func encodeCookie(hashKey []byte, name string, value interface{}) (string, error) {
+func EncodeCookie(hashKey, aesKey []byte, name string, value interface{}) (string, error) {
 	var b []byte
 	var err error
 
@@ -34,6 +36,19 @@ func encodeCookie(hashKey []byte, name string, value interface{}) (string, error
 	if b, err = serialize(value); err != nil {
 		return "", err
 	}
+
+	// Encrypt (optional).
+	if len(aesKey) > 0 {
+		block, err := aes.NewCipher(aesKey)
+		if err != nil {
+			return "", err
+		}
+
+		if b, err = encrypt(block, b); err != nil {
+			return "", err
+		}
+	}
+
 	b = encode(b)
 
 	// create mac for "name|date|value", Extra pipe to be used later
@@ -57,7 +72,7 @@ func encodeCookie(hashKey []byte, name string, value interface{}) (string, error
 //
 // The value argument is the encoded cookie value. The dst argument is where the cookie will
 // be decoded. It must be a pointer.
-func decodeCookie(hashKey []byte, name string, value string, dst interface{}) error {
+func DecodeCookie(hashKey, aesKey []byte, name string, value string, dst interface{}) error {
 	// decode from base64
 	b, err := decode([]byte(value))
 	if err != nil {
@@ -67,7 +82,7 @@ func decodeCookie(hashKey []byte, name string, value string, dst interface{}) er
 	// verify mac, value is "date|value|mac".
 	parts := bytes.SplitN(b, []byte("|"), 3)
 	if len(parts) != 3 {
-		return fmt.Errorf("value is invalid")
+		return fmt.Errorf("verify: value is invalid")
 	}
 	h := hmac.New(hashFunc, hashKey)
 	b = append([]byte(name+"|"), b[:len(b)-len(parts[2])-1]...)
@@ -75,9 +90,22 @@ func decodeCookie(hashKey []byte, name string, value string, dst interface{}) er
 		return err
 	}
 
+	// decode
 	b, err = decode(parts[1])
 	if err != nil {
 		return err
+	}
+
+	// Decrypt (optional).
+	if len(aesKey) > 0 {
+		block, err := aes.NewCipher(aesKey)
+		if err != nil {
+			return err
+		}
+
+		if b, err = decrypt(block, b); err != nil {
+			return err
+		}
 	}
 
 	// deserialize.
@@ -106,6 +134,41 @@ func deserialize(src []byte, dst interface{}) error {
 	}
 
 	return nil
+}
+
+// encrypt encrypts a value using the given block in counter mode.
+//
+// A random initialization vector (http://goo.gl/zF67k) with the length of the
+// block size is prepended to the resulting ciphertext.
+func encrypt(block cipher.Block, value []byte) ([]byte, error) {
+	iv, err := generateRandomKey(block.BlockSize())
+	if err != nil {
+		return nil, err
+	}
+	// Encrypt it.
+	stream := cipher.NewCTR(block, iv)
+	stream.XORKeyStream(value, value)
+	// Return iv + ciphertext.
+	return append(iv, value...), nil
+}
+
+// decrypt decrypts a value using the given block in counter mode.
+//
+// The value to be decrypted must be prepended by a initialization vector
+// (http://goo.gl/zF67k) with the length of the block size.
+func decrypt(block cipher.Block, value []byte) ([]byte, error) {
+	size := block.BlockSize()
+	if len(value) > size {
+		// Extract iv.
+		iv := value[:size]
+		// Extract ciphertext.
+		value = value[size:]
+		// Decrypt it.
+		stream := cipher.NewCTR(block, iv)
+		stream.XORKeyStream(value, value)
+		return value, nil
+	}
+	return nil, fmt.Errorf("the value could not be decrypted")
 }
 
 // encode encodes a value using base64
