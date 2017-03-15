@@ -22,7 +22,7 @@ func TestNewSessions(t *testing.T) {
 	secret := "secret"
 	aesKey := "secret"
 	sessions := NewSessions("secret", "secret")
-	assert.NotNil(t, sessions.mu)
+	assert.NotNil(t, &sessions.mu)
 	assert.NotNil(t, sessions.Store)
 	store := sessions.Store.(*CookieStore)
 	assert.Equal(t, store.secret, secret)

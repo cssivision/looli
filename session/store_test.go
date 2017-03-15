@@ -15,7 +15,7 @@ func TestNewCookieStore(t *testing.T) {
 	store := NewCookieStore(secret, aesKey)
 	assert.Equal(t, secret, store.secret)
 	assert.Equal(t, aesKey, store.aesKey)
-	assert.NotNil(t, store.mu)
+	assert.NotNil(t, &store.mu)
 }
 
 func TestCookieStoreNew(t *testing.T) {
