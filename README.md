@@ -567,7 +567,7 @@ func main() {
 
 # Licenses
 
-license can be found [here](https://github.com/cssivision/looli/blob/master/LICENSE)
+All source code is licensed under the [MIT License](https://github.com/cssivision/looli/blob/master/LICENSE).
 
 # TODO
 * csrf middleware
