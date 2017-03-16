@@ -29,13 +29,12 @@ func main() {
 	secret := "secret"
 
 	// aesKey used to encrypted the session values, the AES key, either 16, 24, 
-	// or 32 bytes to select AES-128, AES-192, or AES-256
+	// or 32 bytes to select AES-128, AES-192, or AES-256, if is empty, will not encrypted session values.
 	aesKey := "1111111111111111"
 	sessions := session.NewSessions(secret, aesKey)
 
 	router.Get("/a", func(ctx *looli.Context) {
-		// Get a session. ignoring the error resulted from decoding an
-        // existing session: Get() always returns a session, even if empty.
+		// Get a session. ignoring the error resulted from decoding an existing session: Get() always returns a session, even if empty.
 		session, err := sessions.Get(ctx, "sess")
 		if err != nil {
 			fmt.Println("err: ", err)
