@@ -564,7 +564,7 @@ func main() {
 }
 ```
 
-# LICENSE
+# Licenses
 
 license can be found [here](https://github.com/cssivision/looli/blob/master/LICENSE)
 

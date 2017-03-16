@@ -56,7 +56,13 @@ type Options struct {
 	MaxAge time.Duration
 }
 
-func Cors(option Options) looli.HandlerFunc {
+// Default return cors middleware with default options being all origins accepted,
+// AllowMethods default is []string{"GET", "HEAD", "PUT", "POST", "DELETE", "PATCH"}.
+func Default() looli.HandlerFunc {
+	return New(Options{})
+}
+
+func New(option Options) looli.HandlerFunc {
 	if option.AllowOrigins == nil {
 		option.AllowOrigins = defaultAllowOrigins
 	}
