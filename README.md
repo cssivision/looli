@@ -524,7 +524,8 @@ func main() {
 
 * Logger middleware
 * Recover middleware
-* Cors middleware
+* [Session middleware](https://github.com/cssivision/looli/tree/master/session)
+* [Cors middleware](https://github.com/cssivision/looli/tree/master/cors)
 * Csrf middleware(todo)
 
 ### Custome middleware
