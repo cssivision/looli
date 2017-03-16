@@ -10,9 +10,9 @@ The key features are:
 
 ## Usage
 
-store value in 
+store value in cookie session.
 
-```
+```go
 package main
 
 import (
