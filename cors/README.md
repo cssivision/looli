@@ -54,9 +54,9 @@ corsMiddleware := cors.New(cors.Options{
 })
 ```
 
-* **AllowOrigins** `[]string`: AllowedOrigins is a list of origins a cross-domain request can be executed from, If the special "*" value is present in the list, all origins will be allowed.
+* **AllowOrigins** `[]string`: a list of origins a cross-domain request can be executed from, If the special "*" value is present in the list, all origins will be allowed.
 
-* **AllowOriginsFunc** `func(string) bool`: AllowOriginFunc is a custom function to validate the origin. It take the origin as argument and returns true if allowed or false otherwise. If this option is set, the content of AllowedOrigins is ignored.
+* **AllowOriginsFunc** `func(string) bool`: a custom function to validate the origin. It take the origin as argument and returns true if allowed or false otherwise. If this option is set, the content of AllowedOrigins is ignored.
 
 * **AllowMethods** `[]string`: specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request, default is []string{"GET", "HEAD", "PUT", "POST", "DELETE", "PATCH"}.
 
