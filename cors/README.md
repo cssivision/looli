@@ -64,9 +64,9 @@ corsMiddleware := cors.New(cors.Options{
 
 * **AllowCredentials** `bool`: The Access-Control-Allow-Credentials header Indicates whether or not the response to the request can be exposed when the credentials flag is true.  When used as part of a response to a preflight request, this indicates whether or not the actual request can be made using credentials. Note that simple GET requests are not preflighted, and so if a request is made for a resource with credentials, if this header is not returned with the resource, the response is ignored by the browser and not returned to web content.
 
-* **ExposeHeaders** `[]string` ExposeHeaders header lets a server whitelist headers that browsers are allowed to access. For example: Access-Control-Expose-Headers: "X-My-Custom-Header, X-Another-Custom-Header" This allows the X-My-Custom-Header and X-Another-Custom-Header headers to be exposed to the browser.
+* **ExposeHeaders** `[]string`: ExposeHeaders header lets a server whitelist headers that browsers are allowed to access. For example: Access-Control-Expose-Headers: "X-My-Custom-Header, X-Another-Custom-Header" This allows the X-My-Custom-Header and X-Another-Custom-Header headers to be exposed to the browser.
 
-* **MaxAge** `time.Duration` MaxAge indicates how long the results of a preflight request can be cached.
+* **MaxAge** `time.Duration`: MaxAge indicates how long the results of a preflight request can be cached.
 
 ## Licenses
 
