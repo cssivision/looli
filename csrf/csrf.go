@@ -6,19 +6,19 @@ import (
 )
 
 var (
-    maxAge = 12 * 3600
-    cookieName = "_csrf"
+	maxAge     = 12 * 3600
+	cookieName = "_csrf"
 )
 
 type Options struct {
-	FormKey    string
-	HeaderKey  string
-	Skip       func(*looli.Context) bool
-	MaxAge     int
-	Domain     string
-	Path       string
-	HttpOnly   bool
-	Secure     bool
+	FormKey   string
+	HeaderKey string
+	Skip      func(*looli.Context) bool
+	MaxAge    int
+	Domain    string
+	Path      string
+	HttpOnly  bool
+	Secure    bool
 }
 
 func Default() looli.HandlerFunc {
@@ -54,34 +54,34 @@ func New(options Options) looli.HandlerFunc {
 		if csrfToken == "" || !verify(getSecret(c), csrfToken) {
 			c.AbortWithStatus(http.StatusForbidden)
 			c.String("invalid csrf token")
-            return
+			return
 		}
 	}
 }
 
 func getSecret(c *looli.Context) string {
-    value, err := c.Cookie(cookieName)
-    var secretCookie *http.Cookie
+	value, err := c.Cookie(cookieName)
+	var secretCookie *http.Cookie
 
-    if err != nil {
-        secretCookie = &http.Cookie{}
-        secretCookie.Name = cookieName
-        secretCookie.Value = newSecret(c)
-        secretCookie.MaxAge = maxAge
-        value = secretCookie.Value
-        c.SetCookie(secretCookie)
-    }
-    return value
+	if err != nil {
+		secretCookie = &http.Cookie{}
+		secretCookie.Name = cookieName
+		secretCookie.Value = newSecret(c)
+		secretCookie.MaxAge = maxAge
+		value = secretCookie.Value
+		c.SetCookie(secretCookie)
+	}
+	return value
 }
 
 func NewToken(c *looli.Context) string {
-    return ""
+	return ""
 }
 
 func newSecret(c *looli.Context) string {
-    return ""
+	return ""
 }
 
 func verify(secret, token string) bool {
-    return true
+	return true
 }
