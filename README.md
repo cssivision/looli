@@ -4,7 +4,7 @@
 [![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://github.com/cssivision/looli/blob/master/LICENSE)
 
 
-looli is a minimalist web framework for go.
+looli is a minimalist web framework for golang.
 
 # Feature
 
