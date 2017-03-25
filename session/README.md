@@ -63,3 +63,7 @@ func main() {
 	http.ListenAndServe(":8080", router)
 }
 ```
+
+## Licenses
+
+All source code is licensed under the [MIT License](https://github.com/cssivision/looli/blob/master/LICENSE).
