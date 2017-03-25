@@ -11,11 +11,12 @@ import (
 )
 
 var (
-	maxAge        = 12 * 3600
-	cookieName    = "_csrf"
-	formKey       = "csrf_token"
-	headerKey     = "X-CSRF-Token"
-	cookieOptions = &http.Cookie{}
+	maxAge                   = 12 * 3600
+	cookieName               = "_csrf"
+	formKey                  = "csrf_token"
+	headerKey                = "X-CSRF-Token"
+	cookieOptions            = &http.Cookie{}
+	invalidCsrfTokenResponse = "invalid csrf token"
 )
 
 type Options struct {
@@ -67,7 +68,7 @@ func New(options Options) looli.HandlerFunc {
 
 		if csrfToken == "" || !verify(getSecret(c), csrfToken) {
 			c.AbortWithStatus(http.StatusForbidden)
-			c.String("invalid csrf token")
+			c.String(invalidCsrfTokenResponse)
 			return
 		}
 	}
