@@ -77,7 +77,7 @@ func getSecret(c *looli.Context) string {
 	value, err := c.Cookie(cookieName)
 	var secretCookie *http.Cookie
 	if err != nil {
-		*secretCookie = *cookieOptions
+		secretCookie = cookieOptions
 		secretCookie.Name = cookieName
 		secretCookie.Value = randomKey(16)
 		value = secretCookie.Value
