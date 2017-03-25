@@ -1,13 +1,21 @@
 package csrf
 
 import (
+	"crypto/rand"
+	"crypto/sha1"
+	"crypto/subtle"
+	"encoding/base64"
 	"github.com/cssivision/looli"
 	"net/http"
+	"strings"
 )
 
 var (
-	maxAge     = 12 * 3600
-	cookieName = "_csrf"
+	maxAge        = 12 * 3600
+	cookieName    = "_csrf"
+	formKey       = "csrf_token"
+	headerKey     = "X-CSRF-Token"
+	cookieOptions = &http.Cookie{}
 )
 
 type Options struct {
@@ -27,16 +35,22 @@ func Default() looli.HandlerFunc {
 
 func New(options Options) looli.HandlerFunc {
 	if options.FormKey == "" {
-		options.FormKey = "csrf_token"
+		options.FormKey = formKey
 	}
 
 	if options.HeaderKey == "" {
-		options.HeaderKey = "X-CSRF-Token"
+		options.HeaderKey = headerKey
 	}
 
 	if options.MaxAge == 0 {
 		options.MaxAge = maxAge
 	}
+
+	cookieOptions.MaxAge = options.MaxAge
+	cookieOptions.Path = options.Path
+	cookieOptions.HttpOnly = options.HttpOnly
+	cookieOptions.Secure = options.Secure
+	cookieOptions.Domain = options.Domain
 
 	return func(c *looli.Context) {
 		if options.Skip != nil && options.Skip(c) {
@@ -62,12 +76,10 @@ func New(options Options) looli.HandlerFunc {
 func getSecret(c *looli.Context) string {
 	value, err := c.Cookie(cookieName)
 	var secretCookie *http.Cookie
-
 	if err != nil {
-		secretCookie = &http.Cookie{}
+		*secretCookie = *cookieOptions
 		secretCookie.Name = cookieName
-		secretCookie.Value = newSecret(c)
-		secretCookie.MaxAge = maxAge
+		secretCookie.Value = randomKey(16)
 		value = secretCookie.Value
 		c.SetCookie(secretCookie)
 	}
@@ -75,13 +87,30 @@ func getSecret(c *looli.Context) string {
 }
 
 func NewToken(c *looli.Context) string {
-	return ""
+	secret := getSecret(c)
+	salt := randomKey(16)
+	return generateWithSalt(secret, salt)
 }
 
-func newSecret(c *looli.Context) string {
-	return ""
+func randomKey(length int) string {
+	b := make([]byte, length)
+	rand.Read(b)
+	return base64.RawURLEncoding.EncodeToString(b)
 }
 
 func verify(secret, token string) bool {
-	return true
+	i := strings.Index(token, ".")
+
+	if i == -1 {
+		return false
+	}
+
+	return subtle.ConstantTimeCompare([]byte(token), []byte(generateWithSalt(secret, token[0:i]))) == 1
+}
+
+func generateWithSalt(secret, salt string) string {
+	h := sha1.New()
+	h.Write([]byte(salt + "." + secret))
+
+	return salt + "." + base64.RawURLEncoding.EncodeToString(h.Sum(nil))
 }
