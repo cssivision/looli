@@ -568,3 +568,8 @@ func main() {
 # Licenses
 
 All source code is licensed under the [MIT License](https://github.com/cssivision/looli/blob/master/LICENSE).
+
+# Todo
+
+* elegant error handle
+* data validate
