@@ -348,6 +348,8 @@ To bind a request into a type, use data binding, data can from query, post body.
 
 Note that you need to set the corresponding binding tag on all fields you want to bind. For example, when binding from JSON, set json:"fieldname".
 
+The Validation of the incoming data show below.
+
 ```go
 package main
 
@@ -360,6 +362,11 @@ import (
 type Infomation struct {
     Name string`json:"name"`
     Age int`json:"age"`
+}
+
+func (i *Infomation) Validate() bool {
+    // data validate，
+    return true
 }
 
 func main() {

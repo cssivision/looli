@@ -13,22 +13,26 @@ import (
 	"testing"
 )
 
-func TestBindJSON(t *testing.T) {
-	type Info struct {
-		Name    string `json:"name"`
-		Age     int    `json:"age"`
-		Other   string `json:"other"`
-		Payload struct {
-			A string `json:"a"`
-			B int    `json:"b"`
-		} `json:"payload"`
-	}
+type Info1 struct {
+	Name    string `json:"name"`
+	Age     int    `json:"age"`
+	Other   string `json:"other"`
+	Payload struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+	} `json:"payload"`
+}
 
+func(i *Info1) Validate() bool {
+	return true
+}
+
+func TestBindJSON(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"
 	router := New()
 	router.Post("/", func(c *Context) {
-		form := new(Info)
+		form := new(Info1)
 		err := c.Bind(form)
 		if err != nil {
 			t.Fatal(err)
@@ -72,19 +76,24 @@ func TestBindJSON(t *testing.T) {
 	assert.Equal(t, serverResponse, string(bodyBytes))
 }
 
+type Info2 struct {
+	XMLName xml.Name `xml:"person"`
+	Name    string   `xml:"name"`
+	Age     int      `xml:"age"`
+	Other   string   `xml:"other"`
+}
+
+func (i *Info2) Validate() bool {
+	return true
+}
+
 func TestBindXML(t *testing.T) {
-	type Info struct {
-		XMLName xml.Name `xml:"person"`
-		Name    string   `xml:"name"`
-		Age     int      `xml:"age"`
-		Other   string   `xml:"other"`
-	}
 
 	statusCode := 404
 	serverResponse := "server response"
 	router := New()
 	router.Post("/", func(c *Context) {
-		form := new(Info)
+		form := new(Info2)
 		err := c.Bind(form)
 		if err != nil {
 			t.Fatal(err)
@@ -101,7 +110,7 @@ func TestBindXML(t *testing.T) {
 	defer server.Close()
 
 	serverURL := server.URL
-	body, err := xml.Marshal(Info{
+	body, err := xml.Marshal(Info2{
 		Name: "cssivision",
 		Age:  21,
 	})
@@ -123,19 +132,24 @@ func TestBindXML(t *testing.T) {
 	assert.Equal(t, serverResponse, string(bodyBytes))
 }
 
+type Info3 struct {
+	Name  string `json:"name"`
+	Age   int    `json:"age"`
+	Other string `json:"other"`
+}
+
+func (i *Info3) Validate() bool {
+	return true
+}
+
 func TestBindForm(t *testing.T) {
-	type Info struct {
-		Name  string `json:"name"`
-		Age   int    `json:"age"`
-		Other string `json:"other"`
-	}
 
 	t.Run("Get query", func(t *testing.T) {
 		statusCode := 404
 		serverResponse := "server response"
 		router := New()
 		router.Get("/", func(c *Context) {
-			form := new(Info)
+			form := new(Info3)
 			err := c.Bind(form)
 			if err != nil {
 				t.Fatal(err)
@@ -170,7 +184,7 @@ func TestBindForm(t *testing.T) {
 		serverResponse := "server response"
 		router := New()
 		router.Post("/", func(c *Context) {
-			form := new(Info)
+			form := new(Info3)
 			err := c.Bind(form)
 			if err != nil {
 				t.Fatal(err)
@@ -204,18 +218,22 @@ func TestBindForm(t *testing.T) {
 	})
 }
 
-func TestBindPostForm(t *testing.T) {
-	type Info struct {
-		Name  string `json:"name"`
-		Age   int    `json:"age"`
-		Other string `json:"other"`
-	}
+type Info4 struct {
+	Name  string `json:"name"`
+	Age   int    `json:"age"`
+	Other string `json:"other"`
+}
 
+func (i *Info4) Validate() bool {
+	return true
+}
+
+func TestBindPostForm(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"
 	router := New()
 	router.Post("/", func(c *Context) {
-		form := new(Info)
+		form := new(Info4)
 		err := c.Bind(form)
 		if err != nil {
 			t.Fatal(err)
@@ -248,12 +266,17 @@ func TestBindPostForm(t *testing.T) {
 	assert.Equal(t, serverResponse, string(bodyBytes))
 }
 
+type Info5 struct {
+	Name  string `json:"name"`
+	Age   int    `json:"age"`
+	Other string `json:"other"`
+}
+
+func (i *Info5) Validate() bool {
+	return true
+}
+
 func TestBindMultiPart(t *testing.T) {
-	type Info struct {
-		Name  string `json:"name"`
-		Age   int    `json:"age"`
-		Other string `json:"other"`
-	}
 
 	boundary := "--testboundary"
 	body := new(bytes.Buffer)
@@ -267,7 +290,7 @@ func TestBindMultiPart(t *testing.T) {
 	serverResponse := "server response"
 	router := New()
 	router.Post("/", func(c *Context) {
-		form := new(Info)
+		form := new(Info5)
 		err := c.Bind(form)
 		assert.Nil(t, err)
 
@@ -295,36 +318,40 @@ func TestBindMultiPart(t *testing.T) {
 	assert.Equal(t, serverResponse, string(bodyBytes))
 }
 
-func TestMutliDataType(t *testing.T) {
-	type Info struct {
-		Name          string
-		Array         []string `json:"array"`
-		Integer8      int8     `json:"integer8"`
-		EmptyInteger  int      `json:"emptyInteger"`
-		Integer16     int16    `json:"integer16"`
-		Integer32     int32    `json:"integer32"`
-		Integer64     int64    `json:"integer64"`
-		Uinteger      uint     `json:"uinteger"`
-		UemptyInteger uint     `json:"emptyUinteger"`
-		Uinteger8     uint8    `json:"uinteger8"`
-		Uinteger16    uint16   `json:"uinteger16"`
-		Uinteger32    uint32   `json:"uinteger32"`
-		Uinteger64    uint64   `json:"uinteger64"`
-		Boolean       bool     `json:"boolean"`
-		EmptyFloat    float32  `json:"emptyFloat"`
-		Float32       float32  `json:"float32"`
-		Float64       float64  `json:"float64"`
-		SubInfo       struct {
-			SubName string `json:"subname"`
-			SubAge  int    `json:"subage"`
-		}
+type Info6 struct {
+	Name          string
+	Array         []string `json:"array"`
+	Integer8      int8     `json:"integer8"`
+	EmptyInteger  int      `json:"emptyInteger"`
+	Integer16     int16    `json:"integer16"`
+	Integer32     int32    `json:"integer32"`
+	Integer64     int64    `json:"integer64"`
+	Uinteger      uint     `json:"uinteger"`
+	UemptyInteger uint     `json:"emptyUinteger"`
+	Uinteger8     uint8    `json:"uinteger8"`
+	Uinteger16    uint16   `json:"uinteger16"`
+	Uinteger32    uint32   `json:"uinteger32"`
+	Uinteger64    uint64   `json:"uinteger64"`
+	Boolean       bool     `json:"boolean"`
+	EmptyFloat    float32  `json:"emptyFloat"`
+	Float32       float32  `json:"float32"`
+	Float64       float64  `json:"float64"`
+	SubInfo       struct {
+		SubName string `json:"subname"`
+		SubAge  int    `json:"subage"`
 	}
+}
 
+func (i *Info6) Validate() bool {
+	return true
+}
+
+func TestMutliDataType(t *testing.T) {
 	statusCode := 404
 	serverResponse := "server response"
 	router := New()
 	router.Post("/", func(c *Context) {
-		form := new(Info)
+		form := new(Info6)
 		assert.Nil(t, c.Bind(form))
 
 		assert.Equal(t, "cssivision", form.Array[0])

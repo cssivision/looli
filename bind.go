@@ -17,6 +17,10 @@ const (
 	MIMEMultipartPOSTForm = "multipart/form-data"
 )
 
+type BindingStruct interface {
+	Validate() bool
+}
+
 type (
 	Binding interface {
 		Bind(*http.Request, interface{}) error
