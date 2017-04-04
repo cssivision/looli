@@ -18,7 +18,7 @@ const (
 )
 
 type BindingStruct interface {
-	Validate() bool
+	Validate() error
 }
 
 type (

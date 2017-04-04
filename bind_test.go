@@ -23,8 +23,8 @@ type Info1 struct {
 	} `json:"payload"`
 }
 
-func(i *Info1) Validate() bool {
-	return true
+func(i *Info1) Validate() error {
+	return nil
 }
 
 func TestBindJSON(t *testing.T) {
@@ -83,8 +83,8 @@ type Info2 struct {
 	Other   string   `xml:"other"`
 }
 
-func (i *Info2) Validate() bool {
-	return true
+func (i *Info2) Validate() error {
+	return nil
 }
 
 func TestBindXML(t *testing.T) {
@@ -138,8 +138,8 @@ type Info3 struct {
 	Other string `json:"other"`
 }
 
-func (i *Info3) Validate() bool {
-	return true
+func (i *Info3) Validate() error {
+	return nil
 }
 
 func TestBindForm(t *testing.T) {
@@ -224,8 +224,8 @@ type Info4 struct {
 	Other string `json:"other"`
 }
 
-func (i *Info4) Validate() bool {
-	return true
+func (i *Info4) Validate() error {
+	return nil
 }
 
 func TestBindPostForm(t *testing.T) {
@@ -272,8 +272,8 @@ type Info5 struct {
 	Other string `json:"other"`
 }
 
-func (i *Info5) Validate() bool {
-	return true
+func (i *Info5) Validate() error {
+	return nil
 }
 
 func TestBindMultiPart(t *testing.T) {
@@ -342,8 +342,8 @@ type Info6 struct {
 	}
 }
 
-func (i *Info6) Validate() bool {
-	return true
+func (i *Info6) Validate() error {
+	return nil
 }
 
 func TestMutliDataType(t *testing.T) {

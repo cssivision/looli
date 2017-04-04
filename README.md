@@ -366,7 +366,7 @@ type Infomation struct {
 
 func (i *Infomation) Validate() bool {
     // data validate，
-    return true
+    return nil
 }
 
 func main() {

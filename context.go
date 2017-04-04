@@ -1,7 +1,6 @@
 package looli
 
 import (
-	"errors"
 	"html/template"
 	"math"
 	"net"
@@ -191,8 +190,9 @@ func (c *Context) ClientIP() string {
 // It decodes the json payload into the struct specified as a pointer.
 // Like ParseBody() but this method also writes a 400 error if the json is not valid.
 func (c *Context) Bind(data BindingStruct) error {
-	if !data.Validate() {
-		return errors.New("validate fail")
+	err := data.Validate()
+	if err != nil {
+		return err
 	}
 
 	binding := bindDefault(c.Request.Method, c.ContentType())
