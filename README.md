@@ -579,4 +579,3 @@ All source code is licensed under the [MIT License](https://github.com/cssivisio
 # Todo
 
 * elegant error handle
-* data validate
