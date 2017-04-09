@@ -501,6 +501,7 @@ package main
 import (
     "net/http"
     "github.com/cssivision/looli"
+    "log"
 )
 
 func main() {
@@ -513,6 +514,13 @@ func main() {
         c.String("hello world!\n")
     })
 
+    // multi handler for specificed path
+    router.Get("/b", func(c *looli.Context) {
+        c.String("first handler\n")
+    }, func(c *looli.Context) {
+        c.String("second handler\n")
+    })
+
     v1 := router.Prefix("/v1")
 
     // recover middleware only work for /v1 prefix router
@@ -523,7 +531,7 @@ func main() {
         c.String("hello world!\n")
     })
 
-    http.ListenAndServe(":8080", router)
+    log.Fatal(http.ListenAndServe(":8080", router))
 }
 ```
 
