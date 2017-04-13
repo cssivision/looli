@@ -4,7 +4,6 @@
 /*
 Package looli is a minimalist web framework for go
 
-router usage
     router := looli.Default()
 
     v1 := router.Prefix("/v1")
