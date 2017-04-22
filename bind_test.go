@@ -23,7 +23,7 @@ type Info1 struct {
 	} `json:"payload"`
 }
 
-func(i *Info1) Validate() error {
+func (i *Info1) Validate() error {
 	return nil
 }
 

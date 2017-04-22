@@ -2,6 +2,7 @@ package looli
 
 import (
 	"net/http"
+	"os"
 	"path"
 	"strings"
 )
@@ -112,8 +113,12 @@ func (p *RouterPrefix) StaticFile(pattern, filepath string) {
 	if strings.Contains(pattern, ":") || strings.Contains(pattern, "*") {
 		panic("URL parameters can not be used when serving a static folder")
 	}
+
 	handler := func(c *Context) {
 		c.ServeFile(filepath)
+		if _, err := os.Stat(filepath); os.IsNotExist(err) {
+			c.statusCode = http.StatusNotFound
+		}
 	}
 
 	p.Head(pattern, handler)
@@ -129,6 +134,9 @@ func (p *RouterPrefix) Static(pattern, dir string) {
 	fileServer := http.StripPrefix(pattern, http.FileServer(http.Dir(dir)))
 	handler := func(c *Context) {
 		fileServer.ServeHTTP(c.ResponseWriter, c.Request)
+		if _, err := os.Stat(path.Join(pattern, c.Param("filepath"))); os.IsNotExist(err) {
+			c.statusCode = http.StatusNotFound
+		}
 	}
 
 	urlPattern := path.Join(pattern, "/*filepath")

@@ -162,6 +162,20 @@ func TestStaticFile(t *testing.T) {
 			router.StaticFile("/*a", filePath)
 		})
 	})
+
+	t.Run("file not exists", func(t *testing.T) {
+		router := New()
+		filePath := "/file/not/exists"
+		router.StaticFile("/a/b", filePath)
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+		serverURL := server.URL
+		resp, err := http.Get(serverURL + "/a/b")
+		assert.Nil(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
 }
 
 func TestStatic(t *testing.T) {
@@ -191,6 +205,24 @@ func TestStatic(t *testing.T) {
 		}
 
 		assert.Equal(t, sourceFile, bodyBytes)
+	})
+
+	t.Run("file not exists", func(t *testing.T) {
+		router := New()
+		dirPath := "./test/"
+		fileName := "file/not/exists"
+		router.Static("/a/b", dirPath)
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+		serverURL := server.URL
+		resp, err := http.Get(serverURL + "/a/b/" + fileName)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
 
 	t.Run("with parameters", func(t *testing.T) {
