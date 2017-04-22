@@ -134,7 +134,7 @@ func (p *RouterPrefix) Static(pattern, dir string) {
 	fileServer := http.StripPrefix(pattern, http.FileServer(http.Dir(dir)))
 	handler := func(c *Context) {
 		fileServer.ServeHTTP(c.ResponseWriter, c.Request)
-		if _, err := os.Stat(path.Join(pattern, c.Param("filepath"))); os.IsNotExist(err) {
+		if _, err := os.Stat(path.Join(dir, c.Param("filepath"))); os.IsNotExist(err) {
 			c.statusCode = http.StatusNotFound
 		}
 	}
