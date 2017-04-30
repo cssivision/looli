@@ -14,9 +14,9 @@ import (
 )
 
 type Info1 struct {
-	Name    string `json:"name"`
-	Age     int    `json:"age"`
-	Other   string `json:"other"`
+	Name    *string `json:"name"`
+	Age     int     `json:"age"`
+	Other   string  `json:"other"`
 	Payload struct {
 		A string `json:"a"`
 		B int    `json:"b"`
@@ -38,7 +38,7 @@ func TestBindJSON(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		assert.Equal(t, "cssivision", form.Name)
+		assert.Equal(t, "cssivision", *form.Name)
 		assert.Equal(t, 21, form.Age)
 		assert.Empty(t, form.Other)
 		assert.Equal(t, "aaa", form.Payload.A)
@@ -133,9 +133,9 @@ func TestBindXML(t *testing.T) {
 }
 
 type Info3 struct {
-	Name  string `json:"name"`
-	Age   int    `json:"age"`
-	Other string `json:"other"`
+	Name  *string `json:"name"`
+	Age   *int    `json:"age"`
+	Other string  `json:"other"`
 }
 
 func (i *Info3) Validate() error {
@@ -150,13 +150,12 @@ func TestBindForm(t *testing.T) {
 		router := New()
 		router.Get("/", func(c *Context) {
 			form := new(Info3)
-			err := c.Bind(form)
-			if err != nil {
+			if err := c.Bind(form); err != nil {
 				t.Fatal(err)
 			}
 
-			assert.Equal(t, "cssivision", form.Name)
-			assert.Equal(t, 21, form.Age)
+			assert.Equal(t, "cssivision", *form.Name)
+			assert.Equal(t, 21, *form.Age)
 			assert.Empty(t, form.Other)
 			c.Status(statusCode)
 			c.String(serverResponse)
@@ -185,13 +184,12 @@ func TestBindForm(t *testing.T) {
 		router := New()
 		router.Post("/", func(c *Context) {
 			form := new(Info3)
-			err := c.Bind(form)
-			if err != nil {
+			if err := c.Bind(form); err != nil {
 				t.Fatal(err)
 			}
 
-			assert.Equal(t, "cssivision", form.Name)
-			assert.Equal(t, 21, form.Age)
+			assert.Equal(t, "cssivision", *form.Name)
+			assert.Equal(t, 21, *form.Age)
 			assert.Empty(t, form.Other)
 			c.Status(statusCode)
 			c.String(serverResponse)
@@ -324,17 +322,17 @@ type Info6 struct {
 	Integer8      int8     `json:"integer8"`
 	EmptyInteger  int      `json:"emptyInteger"`
 	Integer16     int16    `json:"integer16"`
-	Integer32     int32    `json:"integer32"`
+	Integer32     *int32   `json:"integer32"`
 	Integer64     int64    `json:"integer64"`
 	Uinteger      uint     `json:"uinteger"`
 	UemptyInteger uint     `json:"emptyUinteger"`
 	Uinteger8     uint8    `json:"uinteger8"`
 	Uinteger16    uint16   `json:"uinteger16"`
-	Uinteger32    uint32   `json:"uinteger32"`
+	Uinteger32    *uint32  `json:"uinteger32"`
 	Uinteger64    uint64   `json:"uinteger64"`
 	Boolean       bool     `json:"boolean"`
 	EmptyFloat    float32  `json:"emptyFloat"`
-	Float32       float32  `json:"float32"`
+	Float32       *float32 `json:"float32"`
 	Float64       float64  `json:"float64"`
 	SubInfo       struct {
 		SubName string `json:"subname"`
@@ -361,16 +359,16 @@ func TestMutliDataType(t *testing.T) {
 		assert.Equal(t, 0, form.EmptyInteger)
 		assert.Equal(t, int8(7), form.Integer8)
 		assert.Equal(t, int16(7), form.Integer16)
-		assert.Equal(t, int32(7), form.Integer32)
+		assert.Equal(t, int32(7), *form.Integer32)
 		assert.Equal(t, int64(7), form.Integer64)
 		assert.Equal(t, uint(7), form.Uinteger)
 		assert.Equal(t, uint(0), form.UemptyInteger)
 		assert.Equal(t, uint8(7), form.Uinteger8)
 		assert.Equal(t, uint16(7), form.Uinteger16)
-		assert.Equal(t, uint32(7), form.Uinteger32)
+		assert.Equal(t, uint32(7), *form.Uinteger32)
 		assert.Equal(t, uint64(7), form.Uinteger64)
 		assert.True(t, form.Boolean)
-		assert.Equal(t, float32(7.7), form.Float32)
+		assert.Equal(t, float32(7.7), *form.Float32)
 		assert.Equal(t, float64(7.7), form.Float64)
 		assert.Equal(t, float32(0.0), form.EmptyFloat)
 		assert.Equal(t, "sivision", form.SubInfo.SubName)
