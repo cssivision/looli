@@ -364,7 +364,7 @@ type Infomation struct {
     Age int`json:"age"`
 }
 
-func (i *Infomation) Validate() bool {
+func (i *Infomation) Validate() error {
     // data validate，
     return nil
 }
