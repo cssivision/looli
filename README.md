@@ -1,4 +1,6 @@
 # looli
+<img align="right" width="120px" src="https://raw.githubusercontent.com/cssivision/looli/master/looli.jpeg">
+
 [![Build Status](https://img.shields.io/travis/cssivision/looli.svg?style=flat-square)](https://travis-ci.org/cssivision/looli)
 [![Coverage Status](http://img.shields.io/coveralls/cssivision/looli.svg?style=flat-square)](https://coveralls.io/github/cssivision/looli?branch=master)
 [![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://github.com/cssivision/looli/blob/master/LICENSE)
