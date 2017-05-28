@@ -60,14 +60,14 @@ func (*formBinding) Bind(req *http.Request, data interface{}) error {
 	}
 	req.ParseMultipartForm(1 << 32)
 
-	return mapForm(data, req.Form)
+	return parseValues(data, req.Form)
 }
 
 func (*xmlBinding) Bind(req *http.Request, data interface{}) error {
 	return xml.NewDecoder(req.Body).Decode(data)
 }
 
-func mapForm(ptr interface{}, form map[string][]string) error {
+func parseValues(ptr interface{}, form map[string][]string) error {
 	typ := reflect.TypeOf(ptr).Elem()
 	val := reflect.ValueOf(ptr).Elem()
 
@@ -85,7 +85,7 @@ func mapForm(ptr interface{}, form map[string][]string) error {
 			inputFieldName = typeField.Name
 
 			if typeFieldKind == reflect.Struct {
-				if err := mapForm(structField.Addr().Interface(), form); err != nil {
+				if err := parseValues(structField.Addr().Interface(), form); err != nil {
 					return err
 				}
 				continue
