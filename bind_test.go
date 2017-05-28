@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type Info1 struct {
@@ -338,6 +340,7 @@ type Info6 struct {
 		SubName string `json:"subname"`
 		SubAge  int    `json:"subage"`
 	}
+	Time time.Time `json:"time"`
 }
 
 func (i *Info6) Validate() error {
@@ -373,6 +376,8 @@ func TestMutliDataType(t *testing.T) {
 		assert.Equal(t, float32(0.0), form.EmptyFloat)
 		assert.Equal(t, "sivision", form.SubInfo.SubName)
 		assert.Equal(t, 21, form.SubInfo.SubAge)
+		assert.NotNil(t, form.Time)
+
 		c.Status(statusCode)
 		c.String(serverResponse)
 	})
@@ -404,6 +409,7 @@ func TestMutliDataType(t *testing.T) {
 	data.Add("float64", "7.7")
 	data.Add("subname", "sivision")
 	data.Add("subage", "21")
+	data.Add("time", time.Now().Format(time.RFC3339))
 	resp, err := http.Post(serverURL, MIMEPOSTForm, bytes.NewBufferString(data.Encode()))
 	if err != nil {
 		t.Fatal(err)
