@@ -2,12 +2,13 @@ package looli
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMethod(t *testing.T) {
@@ -57,8 +58,7 @@ func handlePostPutMethod(method string, t *testing.T) {
 		assert.Nil(t, err)
 
 		assert.Equal(t, requestData, requestBody)
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -104,8 +104,7 @@ func handleMethod(method string, t *testing.T) {
 	statusCode := 404
 	router := New()
 	router.Handle(method, "/a/b", func(c *Context) {
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -246,8 +245,7 @@ func TestPrefix(t *testing.T) {
 	assert.NotNil(t, v1.router)
 	assert.Equal(t, v1.basePath, "/v1")
 	v1.Get("/a/b", func(c *Context) {
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -278,8 +276,7 @@ func TestPrefixUse(t *testing.T) {
 		})
 
 		router.Get("/a/b", func(c *Context) {
-			c.Status(statusCode)
-			c.String(serverResponse)
+			c.String(statusCode, serverResponse)
 		})
 
 		v1 := router.Prefix("/v1")
@@ -288,8 +285,7 @@ func TestPrefixUse(t *testing.T) {
 		})
 
 		v1.Get("/a/b", func(c *Context) {
-			c.Status(statusCode)
-			c.String(serverResponse)
+			c.String(statusCode, serverResponse)
 		})
 
 		server := httptest.NewServer(router)
@@ -341,7 +337,7 @@ func TestPrefixUse(t *testing.T) {
 		middleware2 := func(c *Context) {
 			c.SetHeader("response-fake-header", "fake")
 			c.Next()
-			c.String(serverResponse)
+			c.String(http.StatusOK, serverResponse)
 		}
 		router := New()
 		v1 := router.Prefix("/v1")
@@ -380,8 +376,7 @@ func TestLoadHTMLGlob(t *testing.T) {
 	router := New()
 	router.LoadHTMLGlob("test/templates/*")
 	router.Get("/index.html", func(c *Context) {
-		c.Status(statusCode)
-		c.HTML("index.tmpl", JSON{
+		c.HTML(statusCode, "index.tmpl", JSON{
 			"title": "Posts",
 		})
 	})
@@ -409,8 +404,7 @@ func TestLoadHTMLFiles(t *testing.T) {
 	router := New()
 	router.LoadHTMLFiles("test/templates/index.tmpl")
 	router.Get("/index.html", func(c *Context) {
-		c.Status(statusCode)
-		c.HTML("index.tmpl", JSON{
+		c.HTML(statusCode, "index.tmpl", JSON{
 			"title": "Posts",
 		})
 	})
@@ -445,7 +439,7 @@ func TestUse(t *testing.T) {
 		middleware2 := func(c *Context) {
 			c.SetHeader("response-fake-header", "fake")
 			c.Next()
-			c.String(serverResponse)
+			c.String(http.StatusOK, serverResponse)
 		}
 		router := New()
 		router.Use(middleware1, middleware2)
@@ -509,7 +503,7 @@ func TestUseHandler(t *testing.T) {
 		HandlerFunc: func(c *Context) {
 			c.SetHeader("response-fake-header", "fake")
 			c.Next()
-			c.String(serverResponse)
+			c.String(http.StatusOK, serverResponse)
 		},
 	}
 

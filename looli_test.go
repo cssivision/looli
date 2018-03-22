@@ -1,11 +1,12 @@
 package looli
 
 import (
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewEngine(t *testing.T) {
@@ -68,8 +69,7 @@ func TestSetIgnoreCase(t *testing.T) {
 	router.SetIgnoreCase(false)
 	assert.False(t, router.router.IgnoreCase)
 	router.Get("/a/b", func(c *Context) {
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -101,8 +101,7 @@ func TestSetTrailingSlashRedirect(t *testing.T) {
 		statusCode := 200
 		statusNotFound := 404
 		router.Get("/a/b", func(c *Context) {
-			c.Status(statusCode)
-			c.String(serverResponse)
+			c.String(statusCode, serverResponse)
 		})
 
 		server := httptest.NewServer(router)
@@ -132,8 +131,7 @@ func TestSetTrailingSlashRedirect(t *testing.T) {
 		statusCode := 200
 		statusNotFound := 404
 		router.Get("/a/b/", func(c *Context) {
-			c.Status(statusCode)
-			c.String(serverResponse)
+			c.String(statusCode, serverResponse)
 		})
 
 		server := httptest.NewServer(router)
@@ -173,8 +171,7 @@ func TestNoMethod(t *testing.T) {
 		})
 
 		router.NoMethod(func(c *Context) {
-			c.Status(statusCode)
-			c.String(serverResponse)
+			c.String(statusCode, serverResponse)
 		})
 
 		server := httptest.NewServer(router)
@@ -227,8 +224,7 @@ func TestNoRoute(t *testing.T) {
 		})
 
 		router.NoRoute(func(c *Context) {
-			c.Status(statusCode)
-			c.String(serverResponse)
+			c.String(statusCode, serverResponse)
 		})
 
 		router.Get("/a/b", func(c *Context) {})

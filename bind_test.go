@@ -45,8 +45,7 @@ func TestBindJSON(t *testing.T) {
 		assert.Empty(t, form.Other)
 		assert.Equal(t, "aaa", form.Payload.A)
 		assert.Equal(t, 222, form.Payload.B)
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -104,8 +103,7 @@ func TestBindXML(t *testing.T) {
 		assert.Equal(t, "cssivision", form.Name)
 		assert.Equal(t, 21, form.Age)
 		assert.Empty(t, form.Other)
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -159,8 +157,7 @@ func TestBindForm(t *testing.T) {
 			assert.Equal(t, "cssivision", *form.Name)
 			assert.Equal(t, 21, *form.Age)
 			assert.Empty(t, form.Other)
-			c.Status(statusCode)
-			c.String(serverResponse)
+			c.String(statusCode, serverResponse)
 		})
 
 		server := httptest.NewServer(router)
@@ -193,8 +190,7 @@ func TestBindForm(t *testing.T) {
 			assert.Equal(t, "cssivision", *form.Name)
 			assert.Equal(t, 21, *form.Age)
 			assert.Empty(t, form.Other)
-			c.Status(statusCode)
-			c.String(serverResponse)
+			c.String(statusCode, serverResponse)
 		})
 
 		server := httptest.NewServer(router)
@@ -242,8 +238,7 @@ func TestBindPostForm(t *testing.T) {
 		assert.Equal(t, "cssivision", form.Name)
 		assert.Equal(t, 21, form.Age)
 		assert.Empty(t, form.Other)
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -297,8 +292,7 @@ func TestBindMultiPart(t *testing.T) {
 		assert.Equal(t, "cssivision", form.Name)
 		assert.Equal(t, 21, form.Age)
 		assert.Empty(t, form.Other)
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -378,8 +372,7 @@ func TestMutliDataType(t *testing.T) {
 		assert.Equal(t, 21, form.SubInfo.SubAge)
 		assert.NotNil(t, form.Time)
 
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)

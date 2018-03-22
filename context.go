@@ -282,20 +282,23 @@ func (c *Context) Error(err error) {
 }
 
 // String write format string to response
-func (c *Context) String(format string, values ...interface{}) {
+func (c *Context) String(code int, format string, values ...interface{}) {
+	c.Status(code)
 	if err := renderString(c.ResponseWriter, format, values...); err != nil {
 		panic(err)
 	}
 }
 
 // JSON write obj to response
-func (c *Context) JSON(data interface{}) {
+func (c *Context) JSON(code int, data interface{}) {
+	c.Status(code)
 	if err := renderJSON(c.ResponseWriter, data); err != nil {
 		panic(err)
 	}
 }
 
-func (c *Context) HTML(name string, data interface{}) {
+func (c *Context) HTML(code int, name string, data interface{}) {
+	c.Status(code)
 	if err := renderHTML(c.ResponseWriter, c.template, name, data); err != nil {
 		panic(err)
 	}

@@ -44,14 +44,12 @@ func New() *Engine {
 
 // noRoute use as a default handler for router not matched
 func noRoute(c *Context) {
-	c.Status(http.StatusNotFound)
-	c.String(default404Body)
+	c.String(http.StatusNotFound, default404Body)
 }
 
 // noMethod use as a default handler for Method not allowed
 func noMethod(c *Context) {
-	c.Status(http.StatusMethodNotAllowed)
-	c.String(default405Body)
+	c.String(http.StatusMethodNotAllowed, default405Body)
 }
 
 // Default return engine instance, add logger, recover handler to it.

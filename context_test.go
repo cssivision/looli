@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestQuery(t *testing.T) {
@@ -23,8 +24,7 @@ func TestQuery(t *testing.T) {
 		assert.Equal(t, c.Query("age"), "23")
 		assert.Equal(t, c.Query("bar"), "イモト")
 		assert.Empty(t, c.Query("other"))
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -52,8 +52,7 @@ func TestDefaultQuery(t *testing.T) {
 		assert.Equal(t, c.DefaultQuery("name", "biz"), "cssivision")
 		assert.Equal(t, c.DefaultQuery("age", "24"), "23")
 		assert.Equal(t, c.DefaultQuery("other", "other value"), "other value")
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -81,8 +80,7 @@ func TestPostForm(t *testing.T) {
 		assert.Equal(t, c.PostForm("page"), "11")
 		assert.Empty(t, c.PostForm("both"))
 		assert.Empty(t, c.PostForm("other"))
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -112,8 +110,7 @@ func TestDefaultPostForm(t *testing.T) {
 		assert.Equal(t, c.DefaultPostForm("page", "12"), "11")
 		assert.Equal(t, c.DefaultPostForm("both", "other"), "other")
 		assert.Empty(t, c.DefaultPostForm("other", ""))
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -153,8 +150,7 @@ func TestPostFormMultipart(t *testing.T) {
 		assert.Equal(t, c.PostForm("foo"), "bar")
 		assert.Equal(t, c.PostForm("array"), "first")
 		assert.Equal(t, c.PostForm("id"), "12")
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -191,8 +187,7 @@ func TestStatus(t *testing.T) {
 	serverResponse := "server response"
 	router := New()
 	router.Get("/", func(c *Context) {
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -217,8 +212,7 @@ func TestRedirect(t *testing.T) {
 	serverResponse := "server response"
 	router := New()
 	router.Get("/redirect", func(c *Context) {
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 	router.Get("/", func(c *Context) {
 		c.Redirect("/redirect")
@@ -272,8 +266,7 @@ func TestHeader(t *testing.T) {
 	router := New()
 	router.Get("/a/b", func(c *Context) {
 		assert.Equal(t, c.Header("fake-header"), "fake")
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -305,8 +298,7 @@ func TestSetHeader(t *testing.T) {
 		router := New()
 		router.Get("/a/b", func(c *Context) {
 			c.SetHeader("fake-header", "fake")
-			c.Status(statusCode)
-			c.String(serverResponse)
+			c.String(statusCode, serverResponse)
 		})
 
 		server := httptest.NewServer(router)
@@ -329,8 +321,7 @@ func TestSetHeader(t *testing.T) {
 		router := New()
 		router.Get("/a/b", func(c *Context) {
 			c.SetHeader("fake-header", "")
-			c.Status(statusCode)
-			c.String(serverResponse)
+			c.String(statusCode, serverResponse)
 		})
 
 		server := httptest.NewServer(router)
@@ -359,8 +350,7 @@ func TestCookie(t *testing.T) {
 		val, err = c.Cookie("fake-cookie-not-exist")
 		assert.NotNil(t, err)
 		assert.Empty(t, val)
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -398,8 +388,7 @@ func TestSetCookie(t *testing.T) {
 			Name:  "fake-cookie",
 			Value: "fake",
 		})
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -433,8 +422,7 @@ func TestAbort(t *testing.T) {
 		c.Abort()
 		assert.True(t, c.IsAborted())
 		assert.Equal(t, c.current, abortIndex)
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	}
 
 	middleware3 := func(c *Context) {
@@ -478,7 +466,7 @@ func TestAbortWithStatus(t *testing.T) {
 		assert.Equal(t, c.current, abortIndex)
 	}
 	middleware2 := func(c *Context) {
-		c.String(serverResponse)
+		c.String(http.StatusOK, serverResponse)
 	}
 
 	router := New()
@@ -515,8 +503,7 @@ func TestError(t *testing.T) {
 			assert.Equal(t, c.Err.Code, 0)
 			assert.Equal(t, c.Err.Meta, nil)
 
-			c.Status(statusCode)
-			c.String(serverResponse)
+			c.String(statusCode, serverResponse)
 		})
 
 		server := httptest.NewServer(router)
@@ -548,8 +535,7 @@ func TestError(t *testing.T) {
 			assert.Equal(t, c.Err.Code, 501)
 			assert.Equal(t, c.Err.Meta, "cssivision")
 
-			c.Status(statusCode)
-			c.String(serverResponse)
+			c.String(statusCode, serverResponse)
 		})
 
 		server := httptest.NewServer(router)
@@ -573,14 +559,12 @@ func TestParam(t *testing.T) {
 	router.Get("/a/:name", func(c *Context) {
 		assert.Equal(t, "cssivision", c.Param("name"))
 		assert.Empty(t, c.Param("other"))
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	router.Get("/b/*filepath", func(c *Context) {
 		assert.Equal(t, "c/cssivision", c.Param("filepath"))
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -622,8 +606,7 @@ func TestClientIP(t *testing.T) {
 
 		router.Get("/a", func(c *Context) {
 			assert.Equal(t, realIP, c.ClientIP())
-			c.Status(statusCode)
-			c.String(serverResponse)
+			c.String(statusCode, serverResponse)
 		})
 
 		server := httptest.NewServer(router)
@@ -653,8 +636,7 @@ func TestClientIP(t *testing.T) {
 		router.Get("/a", func(c *Context) {
 			assert.Equal(t, "looli.xyz", c.ClientIP())
 			assert.Empty(t, c.Header("X-Real-Ip"))
-			c.Status(statusCode)
-			c.String(serverResponse)
+			c.String(statusCode, serverResponse)
 		})
 
 		server := httptest.NewServer(router)
@@ -681,8 +663,7 @@ func TestContentType(t *testing.T) {
 	router := New()
 	router.Post("/a/b", func(c *Context) {
 		assert.Equal(t, "text/plain", c.ContentType())
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -713,8 +694,7 @@ func TestString(t *testing.T) {
 	serverResponse := "server response"
 	router := New()
 	router.Get("/a/b", func(c *Context) {
-		c.Status(statusCode)
-		c.String(serverResponse)
+		c.String(statusCode, serverResponse)
 	})
 
 	server := httptest.NewServer(router)
@@ -743,8 +723,7 @@ func TestJSON(t *testing.T) {
 	statusCode := 404
 	router := New()
 	router.Get("/a/b", func(c *Context) {
-		c.Status(statusCode)
-		c.JSON(JSON{
+		c.JSON(statusCode, JSON{
 			"name": "cssivision",
 			"age":  21,
 		})
@@ -773,8 +752,7 @@ func TestHTML(t *testing.T) {
 		router := New()
 		router.LoadHTMLGlob("test/templates/*")
 		router.Get("/index.html", func(c *Context) {
-			c.Status(statusCode)
-			c.HTML("index.tmpl", JSON{
+			c.HTML(statusCode, "index.tmpl", JSON{
 				"title": "Posts",
 			})
 		})
@@ -797,9 +775,8 @@ func TestHTML(t *testing.T) {
 		router := New()
 		router.LoadHTMLGlob("test/templates/*")
 		router.Get("/index.html", func(c *Context) {
-			c.Status(statusCode)
 			assert.Panics(t, func() {
-				c.HTML("index.tmp", JSON{
+				c.HTML(statusCode, "index.tmp", JSON{
 					"title": "Posts",
 				})
 			})
