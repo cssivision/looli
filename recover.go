@@ -1,8 +1,8 @@
 package looli
 
 import (
+	"fmt"
 	"io"
-	"log"
 	"os"
 	"runtime"
 )
@@ -14,17 +14,12 @@ func Recover() HandlerFunc {
 }
 
 func RecoverWithWriter(out io.Writer) HandlerFunc {
-	var logger *log.Logger
-	if out != nil {
-		logger = log.New(out, "", log.LstdFlags)
-	}
-
 	return func(c *Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				buf := make([]byte, 2048)
 				buf = buf[:runtime.Stack(buf, false)]
-				logger.Printf("[Recover] panic recovered:\n%s\n%s\n", string(buf), err)
+				fmt.Printf("[Recover] panic recovered:\n%s\n%s\n", string(buf), err)
 
 				c.AbortWithStatus(500)
 				return
