@@ -1,6 +1,7 @@
 package session
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"sync"
@@ -44,9 +45,11 @@ func (store *CookieStore) Get(req *http.Request, name string) (*Session, error) 
 		value, _ := url.QueryUnescape(cookie.Value)
 		var values Values
 		session = NewSession(name, store)
-		if err := DecodeCookie([]byte(store.secret), []byte(store.aesKey), name, value, &values); err == nil {
-			session.Values = values
+		err := DecodeCookie([]byte(store.secret), []byte(store.aesKey), name, value, &values)
+		if err != nil {
+			return nil, errors.New("decode session error")
 		}
+		session.Values = values
 	}
 
 	return session, nil
