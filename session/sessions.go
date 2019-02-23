@@ -3,8 +3,9 @@ package session
 import (
 	"crypto/rand"
 	"encoding/gob"
-	"github.com/cssivision/looli"
 	"sync"
+
+	"github.com/cssivision/looli"
 )
 
 func init() {

@@ -1,9 +1,10 @@
 package session
 
 import (
-	"github.com/cssivision/looli"
 	"net/http"
 	"time"
+
+	"github.com/cssivision/looli"
 )
 
 type Values map[interface{}]interface{}

@@ -3,8 +3,8 @@ package looli
 import (
 	"io"
 	"log"
-	"net/http/httputil"
 	"os"
+	"runtime"
 )
 
 var defaultErrorWriter = os.Stderr
@@ -22,10 +22,9 @@ func RecoverWithWriter(out io.Writer) HandlerFunc {
 	return func(c *Context) {
 		defer func() {
 			if err := recover(); err != nil {
-				if logger != nil {
-					httprequest, _ := httputil.DumpRequest(c.Request, false)
-					logger.Printf("[Recover] panic recovered:\n%s\n%s\n", string(httprequest), err)
-				}
+				buf := make([]byte, 2048)
+				buf = buf[:runtime.Stack(buf, false)]
+				logger.Printf("[Recover] panic recovered:\n%s\n%s\n", string(buf), err)
 
 				c.AbortWithStatus(500)
 				return
