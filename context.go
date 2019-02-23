@@ -295,6 +295,18 @@ func (c *Context) JSON(data interface{}) {
 	}
 }
 
+// SetResult set response code and msg
+func (c *Context) SetResult(code int, msg string) {
+	data := map[string]interface{}{
+		"code": code,
+		"msg":  msg,
+	}
+
+	if err := renderJSON(c.ResponseWriter, data); err != nil {
+		panic(err)
+	}
+}
+
 func (c *Context) HTML(name string, data interface{}) {
 	if err := renderHTML(c.ResponseWriter, c.template, name, data); err != nil {
 		panic(err)
