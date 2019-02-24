@@ -113,7 +113,7 @@ func (n *node) addHandlers(method string, handler []HandlerFunc) {
 }
 
 func (n *node) find(path string) (*node, Params, bool) {
-	if path == "" || path[0] != '/' {
+	if path[0] != '/' {
 		panic(fmt.Errorf(`path must start with "/": "%s"`, path))
 	}
 
