@@ -190,13 +190,11 @@ func (c *Context) ClientIP() string {
 // It decodes the json payload into the struct specified as a pointer.
 // Like ParseBody() but this method also writes a 400 error if the json is not valid.
 func (c *Context) Bind(data BindingStruct) error {
-	err := data.Validate()
-	if err != nil {
+	binding := bindDefault(c.Request.Method, c.ContentType())
+	if err := binding.Bind(c.Request, data); err != nil {
 		return err
 	}
-
-	binding := bindDefault(c.Request.Method, c.ContentType())
-	return binding.Bind(c.Request, data)
+	return data.Validate()
 }
 
 // WriteHeader sends an HTTP response header with status code.
@@ -307,6 +305,20 @@ func (c *Context) SetResult(code int, msg string) {
 	}
 }
 
+// SetBody return json body
+func (c *Context) SetBody(data interface{}) {
+	rsp := map[string]interface{}{
+		"code": 0,
+		"msg":  "ok",
+		"data": data,
+	}
+
+	if err := renderJSON(c.ResponseWriter, rsp); err != nil {
+		panic(err)
+	}
+}
+
+// HTML rendder html resp
 func (c *Context) HTML(name string, data interface{}) {
 	if err := renderHTML(c.ResponseWriter, c.template, name, data); err != nil {
 		panic(err)
