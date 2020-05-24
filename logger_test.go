@@ -2,10 +2,11 @@ package looli
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLogger(t *testing.T) {

@@ -1,13 +1,14 @@
 package csrf
 
 import (
-	"github.com/cssivision/looli"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/cssivision/looli"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCsrfMiddleWare(t *testing.T) {

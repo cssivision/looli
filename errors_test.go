@@ -3,9 +3,10 @@ package looli
 import (
 	"encoding/json"
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewError(t *testing.T) {

@@ -2,14 +2,15 @@ package cors
 
 import (
 	"fmt"
-	"github.com/cssivision/looli"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/cssivision/looli"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEmptyHost(t *testing.T) {

@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestQuery(t *testing.T) {

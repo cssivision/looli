@@ -2,12 +2,13 @@ package looli
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSetContentType(t *testing.T) {

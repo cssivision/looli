@@ -1,10 +1,11 @@
 package session
 
 import (
-	"github.com/cssivision/looli"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
+
+	"github.com/cssivision/looli"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateRandomKey(t *testing.T) {

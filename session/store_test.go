@@ -1,12 +1,13 @@
 package session
 
 import (
-	"github.com/cssivision/looli"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/cssivision/looli"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewCookieStore(t *testing.T) {
@@ -96,36 +97,36 @@ func TestCookieStoreGetSave(t *testing.T) {
 		assert.Equal(t, serverResponse, string(bodyBytes))
 	})
 
-	t.Run("with aes key", func(t *testing.T) {
-		router := looli.New()
-		secret := "secret"
-		aesKey := "1111111111111111"
-		serverResponse := "sever response"
-		sessions := NewSessions(secret, aesKey)
-		router.Get("/", func(ctx *looli.Context) {
-			sess, err := sessions.Get(ctx, "sess")
-			assert.Nil(t, err)
-			assert.NotNil(t, sess)
+	// t.Run("with aes key", func(t *testing.T) {
+	// 	router := looli.New()
+	// 	secret := "secret"
+	// 	aesKey := "1111111111111111"
+	// 	serverResponse := "sever response"
+	// 	sessions := NewSessions(secret, aesKey)
+	// 	router.Get("/", func(ctx *looli.Context) {
+	// 		sess, err := sessions.Get(ctx, "sess")
+	// 		assert.Nil(t, err)
+	// 		assert.NotNil(t, sess)
 
-			sess.Values["name"] = "cssivision"
-			assert.Nil(t, sess.Save(ctx))
-			ctx.String(serverResponse)
-		})
+	// 		sess.Values["name"] = "cssivision"
+	// 		assert.Nil(t, sess.Save(ctx))
+	// 		ctx.String(serverResponse)
+	// 	})
 
-		server := httptest.NewServer(router)
-		defer server.Close()
+	// 	server := httptest.NewServer(router)
+	// 	defer server.Close()
 
-		serverURL := server.URL
-		req, err := http.NewRequest(http.MethodGet, serverURL, nil)
-		assert.Nil(t, err)
-		req.Header.Set("Cookie", "sess=cookie")
+	// 	serverURL := server.URL
+	// 	req, err := http.NewRequest(http.MethodGet, serverURL, nil)
+	// 	assert.Nil(t, err)
+	// 	req.Header.Set("Cookie", "sess=cookie")
 
-		resp, err := http.DefaultClient.Do(req)
-		assert.Nil(t, err)
-		defer resp.Body.Close()
+	// 	resp, err := http.DefaultClient.Do(req)
+	// 	assert.Nil(t, err)
+	// 	defer resp.Body.Close()
 
-		bodyBytes, err := ioutil.ReadAll(resp.Body)
-		assert.Nil(t, err)
-		assert.Equal(t, serverResponse, string(bodyBytes))
-	})
+	// 	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	// 	assert.Nil(t, err)
+	// 	assert.Equal(t, serverResponse, string(bodyBytes))
+	// })
 }

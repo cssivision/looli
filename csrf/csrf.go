@@ -5,9 +5,10 @@ import (
 	"crypto/sha1"
 	"crypto/subtle"
 	"encoding/base64"
-	"github.com/cssivision/looli"
 	"net/http"
 	"strings"
+
+	"github.com/cssivision/looli"
 )
 
 var (

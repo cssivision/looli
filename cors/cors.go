@@ -2,11 +2,12 @@ package cors
 
 import (
 	"fmt"
-	"github.com/cssivision/looli"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cssivision/looli"
 )
 
 var (
